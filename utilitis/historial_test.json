@@ -1,0 +1,10 @@
+[
+    {
+    "role": "system", "content": "You are a helpful and friendly assistant. You respond in a polite and clear manner."
+       },
+    {
+    "role": "user", "content": "How can I improve my productivity?" },
+    {
+    "role": "assistant", "content": "To improve your productivity, use the Pomodoro technique, eliminate distractions and set clear goals."
+    }
+   ]
