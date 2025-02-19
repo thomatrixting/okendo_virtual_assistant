@@ -19,6 +19,50 @@ struct Mensaje {
 
     // Función para verificar si Ollama está corriendo e iniciarlo si es necesario
 
+void verificar_ollama(const std::string& modelo);
+void obtener_respuesta(
+            ollama::messages& historial, 
+            const std::string& modelo, 
+            const ollama::options& opciones,
+            const std::string& initial_instruction,
+            const std::string& prompt,
+            const std::string speaking_role
+        );
+void inicializar_historial(const std::string& ruta_json, ollama::messages& historial);
+void inicializar_opciones(const std::string& ruta_json, ollama::options& opciones);
+void print_formatted_output(const std::string& input);
+/*
+int main() {
+        std::string historial_json = "historial_test.json";  // Archivo JSON con historial previo
+        std::string opciones_json = "opcions.json";  // Archivo JSON con historial previo
+
+        ollama::options opciones;
+        inicializar_opciones(opciones_json,opciones);
+
+        ollama::messages historial = {};  // Historial del chat
+        inicializar_historial(historial_json, historial);
+
+        std::string modelo = opciones["model"];//"deepseek-coder";  // Nombre del modelo a usar
+
+        std::string initial_instruction = opciones["initial_intrucion"];
+
+        // Verificar e iniciar Ollama
+        verificar_ollama(modelo);
+
+        // Bucle de tres interacciones
+        for (int i = 0; i < 3; i++) {
+            std::string prompt;
+            std::cout << "Tú: ";
+            std::getline(std::cin, prompt);
+            
+            obtener_respuesta(historial,modelo,opciones,initial_instruction,prompt,"user");
+            print_formatted_output(historial.back()["content"]);
+
+        }
+
+        return 0;
+}
+*/
 void verificar_ollama(const std::string& modelo) {
         if (!ollama::is_running()) {
             std::cout << "Ollama no está corriendo. Intentando iniciar...\n";
@@ -145,38 +189,4 @@ void print_formatted_output(const std::string& input) {
     }
 
     std::cout << "\n==========================================================\n";
-}
-
-
-
-// Función principal (main)
-int main() {
-        std::string historial_json = "historial_test.json";  // Archivo JSON con historial previo
-        std::string opciones_json = "opcions.json";  // Archivo JSON con historial previo
-
-        ollama::options opciones;
-        inicializar_opciones(opciones_json,opciones);
-
-        ollama::messages historial = {};  // Historial del chat
-        inicializar_historial(historial_json, historial);
-
-        std::string modelo = opciones["model"];//"deepseek-coder";  // Nombre del modelo a usar
-
-        std::string initial_instruction = opciones["initial_intrucion"];
-
-        // Verificar e iniciar Ollama
-        verificar_ollama(modelo);
-
-        // Bucle de tres interacciones
-        for (int i = 0; i < 3; i++) {
-            std::string prompt;
-            std::cout << "Tú: ";
-            std::getline(std::cin, prompt);
-            
-            obtener_respuesta(historial,modelo,opciones,initial_instruction,prompt,"user");
-            print_formatted_output(historial.back()["content"]);
-
-        }
-
-        return 0;
 }
