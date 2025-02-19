@@ -1,3 +1,5 @@
+//g++ -std=c++17 -fsanitize=undefined OVA2.cpp -I/home/felipeg/whisper.cpp/include -I/home/felipeg/whisper.cpp/ggml/include -L/home/felipeg/whisper.cpp/build/src -lwhisper  ../utilities/call_the_model.cpp ../utilities/transcriber.cpp -o OVA2.out -g
+
 #include <iostream>
 #include "/home/felipeg/okendo_virtual_assistant/utilities/transcriber.hpp"
 #include "/home/felipeg/okendo_virtual_assistant/utilities/call_the_model.hpp"  
