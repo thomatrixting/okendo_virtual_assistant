@@ -1,3 +1,4 @@
+//g++ microkey.cpp -I/home/felipeg/whisper.cpp/include -I/home/felipeg/whisper.cpp/ggml/include -L/home/felipeg/whisper.cpp/build/src -lwhisper -o microkey
 #include <iostream>
 #include <fstream>
 #include <vector>
