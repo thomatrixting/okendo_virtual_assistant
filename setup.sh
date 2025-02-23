@@ -43,7 +43,7 @@ ollama serve >> "$LOG_DIR/ollama_server.log" 2>&1 &
 
 # Pull the required model and check for connection error
 echo "Pulling the deepseek-coder model from Ollama..."
-ollama pull deepseek-coder 2>&1 | tee $LOG_DIR/pull_log.txt | grep -q "Error: could not connect to ollama app, is it running?"
+ollama pull deepseek-coder 2>&1 | tee "$LOG_DIR/pull_log.txt" | grep -q "Error: could not connect to ollama app, is it running?"
 
 # Check if the connection error occurred
 if [ $? -eq 0 ]; then
