@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <sstream>
+#include <limits.h>
+#include <filesystem>
 
 // Alias para el namespace JSON
 using json = nlohmann::json;
@@ -31,6 +33,8 @@ void obtener_respuesta(
 void inicializar_historial(const std::string& ruta_json, ollama::messages& historial);
 void inicializar_opciones(const std::string& ruta_json, ollama::options& opciones);
 void print_formatted_output(const std::string& input);
+
+std::string get_commands_directory();
 /*
 int main() {
         std::string historial_json = "historial_test.json";  // Archivo JSON con historial previo
@@ -64,19 +68,31 @@ int main() {
 }
 */
 void verificar_ollama(const std::string& modelo) {
-        if (!ollama::is_running()) {
-            std::cout << "Ollama no está corriendo. Intentando iniciar...\n";
-            bool cargado = ollama::load_model(modelo);
-            if (cargado) {
+    if (!ollama::is_running()) {
+        std::cout << "Ollama no está corriendo. Intentando iniciar...\n";
+        
+        std::string comand_dir = get_commands_directory();
+        // Intentar ejecutar el script setup.sh
+        std::string set_up_loc = comand_dir + "../setup.sh";
+        int resultado = system( set_up_loc.c_str() );
+        if (resultado == 0) {
+            std::cout << "Script 'setup.sh' ejecutado exitosamente.\n";
+            
+            // Intentar cargar el modelo después de ejecutar el script
+            if (ollama::load_model(modelo)) {
                 std::cout << "Modelo '" << modelo << "' cargado exitosamente.\n";
             } else {
-                std::cerr << "Error: No se pudo iniciar Ollama con el modelo '" << modelo << "'.\n";
+                std::cerr << "Error: No se pudo cargar el modelo '" << modelo << "'.\n";
                 exit(1);
             }
         } else {
-            std::cout << "Ollama ya está en ejecución.\n";
+            std::cerr << "Error: No se pudo ejecutar el script 'setup.sh'. Código de retorno: " << resultado << "\n";
+            exit(1);
         }
+    } else {
+        std::cout << "Ollama ya está en ejecución.\n";
     }
+}
 
 
     // Función para generar una respuesta y actualizar el historial
@@ -189,4 +205,26 @@ void print_formatted_output(const std::string& input) {
     }
 
     std::cout << "\n==========================================================\n";
+}
+
+std::string get_executable_path() {
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    if (count != -1) {
+        std::string path(result, count);
+        return std::filesystem::path(path).parent_path().string();
+    }
+    return "";
+}
+
+// Function that always points to the /commands directory relative to ROOT_DIR
+std::string get_commands_directory() {
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    if (count != -1) {
+        std::string path(result, count);
+        // Forcefully target the parent directory where the executable is stored
+        return std::filesystem::path(path).parent_path().string();
+    }
+    return "";
 }

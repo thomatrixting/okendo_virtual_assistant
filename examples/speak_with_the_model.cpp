@@ -1,10 +1,32 @@
-//compile with g++ -std=c++17 -fsanitize=undefined speak_with_the_model.cpp ../utilities/call_the_model.cpp -o a.out -g
+//compile with g++ -std=c++17 -fsanitize=undefined speak_with_the_model.cpp ../utilities/call_the_model.cpp -o chat.out -g
 #include <iostream>
 #include "../utilities/call_the_model.hpp"  // Incluir el header
 
-int main() {
-    std::string historial_json = "historial_test.json";  
-    std::string opciones_json = "opcions.json";  
+// Function to display help information
+void show_help();
+
+int main(int argc, char* argv[]) {
+
+        // Check for help or detailed flag
+    bool detailed_response = false;
+
+    
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--help") == 0) {
+            show_help();
+            return 0;
+        } else if (std::strcmp(argv[i], "-d") == 0) {
+            detailed_response = true;
+        } else {
+            std::cerr << "Invalid argument: " << argv[i] << "\n";
+            show_help();
+            return 1;
+        }
+    }
+    std::string comand_dir = get_commands_directory();
+    
+    std::string historial_json = comand_dir+"/historial_test.json";  
+    std::string opciones_json = comand_dir+"/opcions.json";  
 
     ollama::options opciones;
     inicializar_opciones(opciones_json, opciones);
@@ -14,6 +36,11 @@ int main() {
 
     std::string modelo = opciones["model"];
     std::string initial_instruction = opciones["initial_intrucion"];
+
+    // Adjust for detailed response if flag is set
+    if (detailed_response) {
+        initial_instruction = opciones["detail_initial_intrucion"];
+    }
 
     verificar_ollama(modelo);
 
@@ -34,3 +61,10 @@ int main() {
 
     return 0;
 }
+
+void show_help() {
+    std::cout << "Usage: ./session_chat [-d]\n"
+              << "  -d        Start the session with detailed responses.\n"
+              << "  --help    Show this help message.\n";
+}
+

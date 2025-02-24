@@ -34928,7 +34928,7 @@ namespace ollama
 
         private:
             std::string base64_sequence;
-            bool valid;
+            bool valid = false;
     };
 
     class images: public std::vector<std::string> {
@@ -35077,7 +35077,7 @@ namespace ollama
         message_type type;
     };
 
-    class response {
+class response {
 
         public:
 
@@ -35099,7 +35099,7 @@ namespace ollama
                 catch(...) { if (ollama::use_exceptions) throw ollama::invalid_json_exception("Unable to parse JSON string:"+this->json_string); valid = false; }
             }
             
-            response() {json_string = ""; valid = false;}
+            response() : valid(false) { json_string = ""; }
             ~response(){};
 
             bool is_valid() const {return valid;};
@@ -35150,7 +35150,7 @@ namespace ollama
 
         json json_data;        
         message_type type;
-        bool valid;        
+        bool valid = false;        
     };
 
 }
