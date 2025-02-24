@@ -23,52 +23,61 @@ fi
 echo "Ollama installation and setup completed successfully!"
 
 # -------------------------------
-# Step 3: Clone and build whisper.cpp
+# Step 3: Clone and build whisper.cpp (install under utilities)
 # -------------------------------
-echo "Cloning whisper.cpp repository..."
-git clone https://github.com/ggerganov/whisper.cpp.git
-if [ $? -ne 0 ]; then
-    echo "Failed to clone whisper.cpp repository. Exiting."
-    exit 1
-fi
+WHISPER_DIR="utilities/whisper.cpp"
+if [ -d "$WHISPER_DIR" ]; then
+    echo "whisper.cpp already exists in utilities. Skipping clone and build."
+else
+    echo "Cloning whisper.cpp repository into $WHISPER_DIR..."
+    git clone https://github.com/ggerganov/whisper.cpp.git "$WHISPER_DIR"
+    if [ $? -ne 0 ]; then
+        echo "Failed to clone whisper.cpp repository. Exiting."
+        exit 1
+    fi
 
-cd whisper.cpp || { echo "whisper.cpp directory not found. Exiting."; exit 1; }
+    cd "$WHISPER_DIR" || { echo "whisper.cpp directory not found. Exiting."; exit 1; }
 
-echo "Creating build directory..."
-mkdir build && cd build
-if [ $? -ne 0 ]; then
-    echo "Failed to create or access the build directory. Exiting."
-    exit 1
-fi
+    echo "Creating build directory..."
+    mkdir build && cd build
+    if [ $? -ne 0 ]; then
+        echo "Failed to create or access the build directory. Exiting."
+        exit 1
+    fi
 
-echo "Configuring the project with CMake..."
-cmake ..
-if [ $? -ne 0 ]; then
-    echo "CMake configuration failed. Exiting."
-    exit 1
-fi
+    echo "Configuring the project with CMake..."
+    cmake ..
+    if [ $? -ne 0 ]; then
+        echo "CMake configuration failed. Exiting."
+        exit 1
+    fi
 
-echo "Building whisper.cpp..."
-make -j$(nproc)
-if [ $? -ne 0 ]; then
-    echo "Build failed. Exiting."
-    exit 1
-fi
+    echo "Building whisper.cpp..."
+    make -j$(nproc)
+    if [ $? -ne 0 ]; then
+        echo "Build failed. Exiting."
+        exit 1
+    fi
 
-# -------------------------------
-# Step 4: Download the model used in the program
-# -------------------------------
-echo "Downloading the whisper.cpp model..."
-sudo wget -P /home/felipeg/whisper.cpp/models https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
-if [ $? -ne 0 ]; then
-    echo "Failed to download the whisper.cpp model. Exiting."
-    exit 1
+    # Return to the main directory
+    cd ../../..
 fi
 
 # -------------------------------
-# Step 5: Configure LD_LIBRARY_PATH for whisper.cpp shared library
+# Step 4: Download the whisper.cpp model (if not already present)
 # -------------------------------
-echo "Configuring LD_LIBRARY_PATH for whisper.cpp..."
-export LD_LIBRARY_PATH=/home/felipeg/whisper.cpp/build/src:$LD_LIBRARY_PATH
+MODEL_DIR="$WHISPER_DIR/models"
+MODEL_FILE="ggml-base.bin"
+if [ -f "$MODEL_DIR/$MODEL_FILE" ]; then
+    echo "whisper.cpp model already exists. Skipping download."
+else
+    echo "Downloading the whisper.cpp model..."
+    mkdir -p "$MODEL_DIR"
+    wget -P "$MODEL_DIR" https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+    if [ $? -ne 0 ]; then
+        echo "Failed to download the whisper.cpp model. Exiting."
+        exit 1
+    fi
+fi
 
-echo "Whisper.cpp installation and setup completed successfully!"
+

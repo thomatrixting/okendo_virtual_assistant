@@ -90,3 +90,9 @@ alias amfq="$COMMANDS_DIR/amfq.out"
 alias chat="$COMMANDS_DIR/chat.out"
 
 echo "¡Configuración completada exitosamente! Los comandos 'amfq' y 'chat' están disponibles para esta sesión."
+
+#Configure LD_LIBRARY_PATH for whisper.cpp shared library
+echo "Configuring LD_LIBRARY_PATH for whisper.cpp..."
+export LD_LIBRARY_PATH="$ROOT_DIR/utilities/whisper.cpp/build/src:$LD_LIBRARY_PATH"
+
+echo "Whisper.cpp setup succesfull!"
