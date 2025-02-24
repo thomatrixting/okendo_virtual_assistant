@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 
     // Adjust for detailed response if flag is set
     if (detailed_response) {
-        initial_instruction = opciones["detail_intial_instrucion"];
+        initial_instruction = opciones["detail_initial_intrucion"];
     }
 
     verificar_ollama(modelo);

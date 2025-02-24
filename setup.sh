@@ -1,94 +1,92 @@
 #!/bin/bash
+# Uso: . ./setup.sh /path/to/root
+# Ejemplo: . ./setup.sh "$(pwd)"  (ejecutar en la raíz del proyecto)
 
-# Usage: . ./setup.sh /path/to/root
-# . ./setup.sh $(pwd) in case of being on the root of the project
-# Check if root directory is provided as an argument
+# Función para manejar errores de forma centralizada
+handle_error() {
+    echo "Error: $1"
+    return 1
+}
+
+# Opcional: activar trampa para errores inesperados (no aborta inmediatamente, pero informa)
+trap 'echo "Error on line "' ERR
+
+# Verificar que se haya proporcionado el directorio raíz
 if [ -z "$1" ]; then
-    echo "Error: No root directory provided."
-    echo "Usage: . ./setup.sh /path/to/root"
-    exit 1
+    echo "Error: No se proporcionó directorio raíz."
+    echo "Uso: . ./setup.sh /path/to/root"
+    return 1
 fi
 
 ROOT_DIR="$1"
 
-# Check if the provided root directory exists
+# Verificar que el directorio raíz exista
 if [ ! -d "$ROOT_DIR" ]; then
-    echo "Error: Provided root directory does not exist."
-    exit 1
+    echo "Error: El directorio raíz proporcionado no existe."
+    return 1
 fi
 
-# Add the ollama binary to the PATH using the root directory
+# Agregar el binario de ollama al PATH usando el directorio raíz
 export PATH="$ROOT_DIR/bin:$PATH"
 
-# Create logs directory if it doesn't exist
+# Crear el directorio de logs si no existe
 LOG_DIR="$ROOT_DIR/logs"
 if [ ! -d "$LOG_DIR" ]; then
-    echo "Logs directory not found. Creating $LOG_DIR..."
-    mkdir -p "$LOG_DIR"
-    if [ $? -ne 0 ]; then
-        echo "Failed to create logs directory. Exiting."
-        exit 1
-    fi
+    echo "Directorio de logs no encontrado. Creando $LOG_DIR..."
+    mkdir -p "$LOG_DIR" || handle_error "No se pudo crear el directorio de logs."
 fi
 
-# Check if port 11434 is in use
+# Verificar si el puerto 11434 está en uso
 if lsof -i :11434 &> /dev/null; then
-    echo "Port 11434 is already in use. Stopping existing ollama server..."
-    pkill -f ollama
-    echo "Previous ollama server stopped."
+    echo "El puerto 11434 ya está en uso. Deteniendo el servidor ollama existente..."
+    pkill -f ollama || echo "Advertencia: No se pudo detener algún proceso de ollama."
+    echo "Servidor ollama detenido."
 fi
 
-# Start the ollama server in the background and redirect logs to /logs
+# Iniciar el servidor ollama en segundo plano y redirigir los logs
+echo "Iniciando servidor de ollama..."
+export OLLAMA_LOAD_TIMEOUT=10m
+
 ollama serve >> "$LOG_DIR/ollama_server.log" 2>&1 &
-
-# Pull the required model and check for connection error
-echo "Pulling the deepseek-coder model from Ollama..."
-ollama pull deepseek-coder 2>&1 | tee "$LOG_DIR/pull_log.txt" | grep -q "Error: could not connect to ollama app, is it running?"
-
-# Check if the connection error occurred
-if [ $? -eq 0 ]; then
-    echo "Error detected: Ollama app is not running. Restarting setup..."
-    exec "$0" "$ROOT_DIR"  # Re-run the script from the start with the same argument
-    exit 0  # Skip the remaining commands
+if [ $? -ne 0 ]; then
+    handle_error "No se pudo iniciar el servidor ollama."
 fi
 
-# Create commands directory if it doesn't exist
+sleep 5
+
+# Descargar el modelo deepseek-coder y verificar errores de conexión
+echo "Descargando el modelo deepseek-coder de Ollama..."
+ollama pull deepseek-coder 2>&1 | tee "$LOG_DIR/pull_log.txt"
+if [ $? -ne 0 ]; then
+    echo "Error detectado: La aplicación Ollama no está corriendo. Verifica su estado y vuelve a ejecutar la configuración."
+    return 1
+fi
+
+# Crear el directorio de comandos si no existe
 COMMANDS_DIR="$ROOT_DIR/commands"
 if [ ! -d "$COMMANDS_DIR" ]; then
-    echo "Commands directory not found. Creating $COMMANDS_DIR..."
-    mkdir -p "$COMMANDS_DIR"
-    if [ $? -ne 0 ]; then
-        echo "Failed to create commands directory. Exiting."
-        exit 1
-    fi
+    echo "Directorio de comandos no encontrado. Creando $COMMANDS_DIR..."
+    mkdir -p "$COMMANDS_DIR" || handle_error "No se pudo crear el directorio de comandos."
 fi
 
-# Copy example files into the commands directory
-echo "Copying necessary files to the commands directory..."
-cp "$ROOT_DIR/examples/ask_the_model.cpp" "$COMMANDS_DIR/"
-cp "$ROOT_DIR/examples/speak_with_the_model.cpp" "$COMMANDS_DIR/"
-cp "$ROOT_DIR/examples/opcions.json" "$COMMANDS_DIR/"
-cp "$ROOT_DIR/examples/historial_test.json" "$COMMANDS_DIR/"
+# Copiar archivos de ejemplo al directorio de comandos
+echo "Copiando archivos necesarios al directorio de comandos..."
+cp "$ROOT_DIR/examples/ask_the_model.cpp" "$COMMANDS_DIR/" || handle_error "No se pudo copiar ask_the_model.cpp."
+cp "$ROOT_DIR/examples/speak_with_the_model.cpp" "$COMMANDS_DIR/" || handle_error "No se pudo copiar speak_with_the_model.cpp."
+cp "$ROOT_DIR/examples/opcions.json" "$COMMANDS_DIR/" || handle_error "No se pudo copiar opcions.json."
+cp "$ROOT_DIR/examples/historial_test.json" "$COMMANDS_DIR/" || handle_error "No se pudo copiar historial_test.json."
 
-# Compile ask_the_model.cpp into amfq.out
-echo "Compiling ask_the_model.cpp into amfq.out..."
-g++ -std=c++17 -fsanitize=undefined "$COMMANDS_DIR/ask_the_model.cpp" "$ROOT_DIR/utilities/call_the_model.cpp" -o "$COMMANDS_DIR/amfq.out"
-if [ $? -ne 0 ]; then
-    echo "Failed to compile ask_the_model.cpp. Exiting."
-    exit 1
-fi
+# Compilar ask_the_model.cpp en amfq.out
+echo "Compilando ask_the_model.cpp en amfq.out..."
+g++ -std=c++17 -fsanitize=undefined "$COMMANDS_DIR/ask_the_model.cpp" "$ROOT_DIR/utilities/call_the_model.cpp" -o "$COMMANDS_DIR/amfq.out" || handle_error "Fallo la compilación de ask_the_model.cpp."
 
-# Compile speak_with_the_model.cpp into chat.out
-echo "Compiling speak_with_the_model.cpp into chat.out..."
-g++ -std=c++17 -fsanitize=undefined "$COMMANDS_DIR/speak_with_the_model.cpp" "$ROOT_DIR/utilities/call_the_model.cpp" -o "$COMMANDS_DIR/chat.out" -g
-if [ $? -ne 0 ]; then
-    echo "Failed to compile speak_with_the_model.cpp. Exiting."
-    exit 1
-fi
+# Compilar speak_with_the_model.cpp en chat.out
+echo "Compilando speak_with_the_model.cpp en chat.out..."
+g++ -std=c++17 -fsanitize=undefined "$COMMANDS_DIR/speak_with_the_model.cpp" "$ROOT_DIR/utilities/call_the_model.cpp" -o "$COMMANDS_DIR/chat.out" -g || handle_error "Fallo la compilación de speak_with_the_model.cpp."
 
-# Add commands directory to PATH for the current session
+# Agregar el directorio de comandos al PATH para la sesión actual y definir los alias
 export PATH="$COMMANDS_DIR:$PATH"
 alias amfq="$COMMANDS_DIR/amfq.out"
 alias chat="$COMMANDS_DIR/chat.out"
 
-echo "Setup completed successfully! Commands 'amfq' and 'chat' are now available for this session."
+echo "¡Configuración completada exitosamente! Los comandos 'amfq' y 'chat' están disponibles para esta sesión."
