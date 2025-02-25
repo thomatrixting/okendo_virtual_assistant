@@ -9,7 +9,8 @@ handle_error() {
 }
 
 # Opcional: activar trampa para errores inesperados (no aborta inmediatamente, pero informa)
-trap 'echo "Error on line "' ERR
+trap 'echo "Error on line $LINENO"' ERR
+
 
 # Verificar que se haya proporcionado el directorio raíz
 if [ -z "$1" ]; then
@@ -96,3 +97,6 @@ echo "Configuring LD_LIBRARY_PATH for whisper.cpp..."
 export LD_LIBRARY_PATH="$ROOT_DIR/utilities/whisper.cpp/build/src:$LD_LIBRARY_PATH"
 
 echo "Whisper.cpp setup succesfull!"
+
+trap - ERR
+
