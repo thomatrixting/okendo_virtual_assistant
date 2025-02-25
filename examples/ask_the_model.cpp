@@ -8,7 +8,7 @@
 // Function to display help information
 void show_help();
 
-int main(int argc, char* argv[]) {
+int ask(int argc, char* argv[]) {
     if (argc < 2) {
         std::cerr << "Error: No prompt provided. Use --help for usage information.\n";
         return 1;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void show_help() {
+inline void show_help() {
     std::cout << "Usage: ./amfq [PROMPT] [-d] [--help]\n"
               << "  PROMPT    The question you want to ask the model.\n"
               << "  -d        Request a detailed response.\n"

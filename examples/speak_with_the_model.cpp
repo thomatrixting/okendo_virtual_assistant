@@ -5,9 +5,9 @@
 // Function to display help information
 void show_help();
 
-int main(int argc, char* argv[]) {
+int speak(int argc, char* argv[]) {
 
-        // Check for help or detailed flag
+    // Check for help or detailed flag
     bool detailed_response = false;
 
     
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void show_help() {
+inline void show_help() {
     std::cout << "Usage: ./session_chat [-d]\n"
               << "  -d        Start the session with detailed responses.\n"
               << "  --help    Show this help message.\n";
