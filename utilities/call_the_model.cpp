@@ -173,6 +173,33 @@ void inicializar_opciones(const std::string& ruta_json, ollama::options& opcione
     std::cout << "Opciones cargadas desde " << ruta_json << "\n";
 }
 
+void format_response_for_audio(const std::string& input, std::string &output) {
+    std::istringstream stream(input);
+    std::string line;
+    output.clear();
+    int line_count = 0;
+
+    while (std::getline(stream, line)) {
+        if (line_count > 0) {
+            output += "<|jump_line|>"; // Add jump line tag between lines
+        }
+        
+        for (size_t i = 0; i < line.size(); ++i) {
+            if (line[i] == '`') {
+                if (i + 2 < line.size() && line[i + 1] == '`' && line[i + 2] == '`') {
+                    output += "<|long_comand|>";
+                    i += 2; // Skip the next two backticks
+                } else {
+                    output += "<|short_comand|>";
+                }
+            } else {
+                output += line[i];
+            }
+        }
+
+        line_count++;
+    }
+}
 
 void print_formatted_output(const std::string& input) {
     std::istringstream stream(input);
