@@ -4,8 +4,13 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <fstream>
 
 class Voicer {
+public:
+    // Enumeración para los estados de captura
+    enum CaptureState { WAITING, CAPTURING, PAUSED };
+
 private:
     std::string archivoTexto;
     std::string archivoAudio;
@@ -21,3 +26,4 @@ public:
 };
 
 #endif // VOICER_HPP
+
