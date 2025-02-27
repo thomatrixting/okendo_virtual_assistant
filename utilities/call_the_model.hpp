@@ -28,7 +28,7 @@ void obtener_respuesta(
 void inicializar_historial(const std::string& ruta_json, ollama::messages& historial);
 void inicializar_opciones(const std::string& ruta_json, ollama::options& opciones);
 void print_formatted_output(const std::string& input);
-void format_response_for_audio(const std::string& input, std::string &output);
+void format_response_for_audio(const std::string& input, std::string &output);  
 std::string get_commands_directory();
 
 #endif // CALL_THE_MODEL_HPP
