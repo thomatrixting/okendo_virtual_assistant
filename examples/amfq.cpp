@@ -8,7 +8,7 @@
 // Function to display help information
 void show_help();
 
-int main(int argc, char* argv[]) {
+int ask(int argc, char* argv[]) {
     if (argc < 2) {
         std::cerr << "Error: No prompt provided. Use --help for usage information.\n";
         return 1;

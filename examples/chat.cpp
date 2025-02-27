@@ -5,7 +5,7 @@
 // Function to display help information
 void show_help();
 
-int main(int argc, char* argv[]) {
+int speak(int argc, char* argv[]) {
 
     // Check for help or detailed flag
     bool detailed_response = false;
