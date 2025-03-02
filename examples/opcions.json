@@ -1,10 +1,12 @@
 {
     "top_k": 10,
     "temperature": 0,
-    "max_tokens": 128,
     "top_p": 0.7,
     "model": "deepseek-coder",
+    "model_chat_response":"chat_response_assitant",
+    "model_chat_response_unrestricted":"chat_response_unrestricted",
+    "model_fast_response":"fast_response_assitant",
     "detail_initial_intrucion": "you are an assistant for the terminal of linux, that can help with c++ and python, be detail with the response explaining everything and giving examples",
-    "initial_intrucion": "you don't have too much space keep the response short, in the context of a linux distribution, if question is difficult just give the essential details"
+    "initial_intrucion": "you are a linux c++ python assistant,you don't have too much space keep the response short, in the context of a linux distribution, if question is difficult just give the essential details"
 
 }

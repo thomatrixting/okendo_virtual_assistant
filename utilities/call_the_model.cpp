@@ -9,6 +9,7 @@
 #include <sstream>
 #include <limits.h>
 #include <filesystem>
+#include <string>
 
 // Alias para el namespace JSON
 using json = nlohmann::json;
@@ -22,17 +23,23 @@ struct Mensaje {
     // Función para verificar si Ollama está corriendo e iniciarlo si es necesario
 
 void verificar_ollama(const std::string& modelo);
+
 void obtener_respuesta(
             ollama::messages& historial, 
             const std::string& modelo, 
             const ollama::options& opciones,
             const std::string& initial_instruction,
             const std::string& prompt,
-            const std::string speaking_role
+            const std::string& speaking_role
         );
+
 void inicializar_historial(const std::string& ruta_json, ollama::messages& historial);
 void inicializar_opciones(const std::string& ruta_json, ollama::options& opciones);
 void print_formatted_output(const std::string& input);
+void guardar_en_log(const std::string& usuario, const std::string& mensaje, const std::string& respuesta, bool esError);
+void truncar_historial(ollama::messages& historial, int limit);
+void format_response_for_audio(const std::string& input, std::string &output);
+void reiniciar_servidor();
 
 std::string get_commands_directory();
 /*
@@ -94,35 +101,123 @@ void verificar_ollama(const std::string& modelo) {
     }
 }
 
-
-    // Función para generar una respuesta y actualizar el historial
 void obtener_respuesta(
-            ollama::messages& historial, 
-            const std::string& modelo, 
-            const ollama::options& opciones,
-            const std::string& initial_instruction,
-            const std::string& prompt,
-            const std::string speaking_role
-        )
-    {
-        ollama::messages mensajes = historial;
+    ollama::messages& historial, 
+    const std::string& modelo, 
+    const ollama::options& opciones,
+    const std::string& initial_instruction,
+    const std::string& prompt,
+    const std::string speaking_role
+)
+{
+    // Clonar historial
+    ollama::messages mensajes = historial;
+    mensajes.push_back({"system", initial_instruction});
+    mensajes.push_back({speaking_role, prompt});
 
-        // 1) Añadimos al historial el mensaje de tipo "system"
-        mensajes.push_back({"system", initial_instruction});
+    // Truncar el historial si es necesario
+    truncar_historial(mensajes, 2);
 
-        // 2) Añadimos al historial el mensaje del usuario
-        mensajes.push_back({speaking_role, prompt});
-
-        // 4) Consultamos al modelo con la lista completa de mensajes
+    try {
+        // Generar respuesta del modelo
         std::string respuesta = ollama::chat(modelo, mensajes, opciones);
 
-        // 5) Agregamos la respuesta del modelo al historial
-        historial.push_back({speaking_role,prompt});
-        historial.push_back({speaking_role, respuesta});
+        // Agregar al historial
+        historial.push_back({speaking_role, prompt});  
+        historial.push_back({"assistant", respuesta}); 
 
+        // Guardar en el log
+        guardar_en_log(speaking_role, prompt, respuesta, false);
+
+    } catch (const std::exception& e) {
+        std::cerr << "un error en la generacion ha ocurrido se reinciara el servidor" << "\n";
+        reiniciar_servidor();
+        // Guardar error en log
+        guardar_en_log(speaking_role, prompt, e.what(), true);
+        std::cerr << "Error critico en la generación de respuesta: " << e.what() << std::endl;
+        exit(1);
+    }
 }
 
-        
+void guardar_en_log(const std::string& usuario, const std::string& mensaje, const std::string& respuesta, bool esError)
+{
+    std::string logs_dir = get_commands_directory() + "/../logs";
+    std::string log_file_path = logs_dir + "/logs_of_messaging.log";
+
+    try {
+        // Asegurar que el directorio de logs exista
+        std::filesystem::create_directories(logs_dir);
+
+        // Abrir el archivo en modo de agregar (`append`)
+        std::ofstream log_file(log_file_path, std::ios::app);
+        if (!log_file) {
+            std::cerr << "Error: No se pudo abrir el archivo de log: " << log_file_path << std::endl;
+            return;
+        }
+
+        // Escribir en el log
+        log_file << "==== Nueva Entrada ====" << std::endl;
+        log_file << "Usuario (" << usuario << "): " << mensaje << std::endl;
+
+        if (esError) {
+            log_file << "⚠️ ERROR: " << respuesta << std::endl;
+        } else {
+            log_file << "Asistente: " << respuesta << std::endl;
+        }
+
+        log_file << "======================" << std::endl;
+
+        log_file.close();
+    } catch (...) {
+        std::cerr << "Error adicional al escribir en el log." << std::endl;
+    }
+}
+
+void truncar_historial(ollama::messages& historial, int limit) {
+    if (historial.size() <= limit*3) {
+        return; // Keep history if there are 4 or fewer messages
+    }
+
+    ollama::messages nuevo_historial;
+    int user_count = 0;
+
+    // Iterate backwards to find the last 'limit' user messages and their responses
+    for (auto it = historial.rbegin(); it != historial.rend(); ++it) {
+        if (it->contains("role") && it->at("role") == "user") {
+            user_count++;
+        }
+        nuevo_historial.push_back(*it);
+        if (user_count == limit) {
+            break;
+        }
+    }
+
+    // Reverse back to correct order
+    std::reverse(nuevo_historial.begin(), nuevo_historial.end());
+
+    historial = nuevo_historial;
+}
+
+void reiniciar_servidor() {
+    std::string script_path = get_commands_directory() + "/../restart_server.sh";
+    std::string comand = script_path +" "+ get_commands_directory() + "/../"; //arguments for the script
+
+
+    // Check if the script exists before running
+    if (!std::filesystem::exists(script_path)) {
+        std::cerr << "Error: No se encontró el archivo " << script_path << std::endl;
+        return;
+    }
+
+    // Execute the restart script
+    int resultado = std::system(comand.c_str());
+
+    if (resultado == 0) {
+        std::cout << "✅ Servidor reiniciado exitosamente con " << script_path << std::endl;
+    } else {
+        std::cerr << "❌ Error: No se pudo reiniciar el servidor. Código de salida: " << resultado << std::endl;
+    }
+}
 
     // Función para inicializar el historial del chat desde un JSON
 void inicializar_historial(const std::string& ruta_json, ollama::messages& historial) {
@@ -232,16 +327,6 @@ void print_formatted_output(const std::string& input) {
     }
 
     std::cout << "\n==========================================================\n";
-}
-
-std::string get_executable_path() {
-    char result[PATH_MAX];
-    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-    if (count != -1) {
-        std::string path(result, count);
-        return std::filesystem::path(path).parent_path().string();
-    }
-    return "";
 }
 
 // Function that always points to the /commands directory relative to ROOT_DIR

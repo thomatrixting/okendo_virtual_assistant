@@ -40,6 +40,8 @@ int main(int argc, char* argv[]) {
     // Adjust for detailed response if flag is set
     if (detailed_response) {
         initial_instruction = opciones["detail_initial_intrucion"];
+        std::string modelo = opciones["model_chat_response_unrestricted"];
+
     }
 
     verificar_ollama(modelo);
