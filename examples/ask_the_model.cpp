@@ -50,12 +50,13 @@ int main(int argc, char* argv[]) {
     ollama::messages historial;
     inicializar_historial(historial_json, historial);
 
-    std::string modelo = opciones["model"];
+    std::string modelo = opciones["model_fast_response"];
     std::string initial_instruction = opciones["initial_intrucion"];
 
     // Adjust for detailed response if flag is set
     if (detailed_response) {
         initial_instruction = opciones["detail_initial_intrucion"];
+        modelo = opciones["model_chat_response"];
     }
 
     // Verify if Ollama server is running

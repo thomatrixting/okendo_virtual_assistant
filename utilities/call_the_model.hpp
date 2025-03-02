@@ -5,6 +5,7 @@
 #include <vector>
 #include "json.hpp"
 #include "ollama.hpp"
+#include <string>
 
 // Alias para JSON
 using json = nlohmann::json;
@@ -29,6 +30,7 @@ void inicializar_historial(const std::string& ruta_json, ollama::messages& histo
 void inicializar_opciones(const std::string& ruta_json, ollama::options& opciones);
 void print_formatted_output(const std::string& input);
 void format_response_for_audio(const std::string& input, std::string &output);  
+void guardar_en_log(const std::string& usuario, const std::string& mensaje, const std::string& respuesta, bool esError);
 std::string get_commands_directory();
 
 #endif // CALL_THE_MODEL_HPP
