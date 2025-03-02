@@ -74,6 +74,22 @@ int main() {
         return 0;
 }
 */
+
+void modelog(const std::string& message) {
+    
+    std::string logDirectory = "../logs/"; 
+    std::filesystem::create_directories(logDirectory);
+    std::string logFilePath = logDirectory + "call_the_model.log";
+
+    std::ofstream logFile(logFilePath, std::ios::app); // Open in append mode
+    if (logFile) {
+        logFile << message << std::endl;
+        logFile.close();
+    } else {
+        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
+    }
+}
+
 void verificar_ollama(const std::string& modelo) {
     if (!ollama::is_running()) {
         std::cout << "Ollama no está corriendo. Intentando iniciar...\n";
@@ -97,7 +113,8 @@ void verificar_ollama(const std::string& modelo) {
             exit(1);
         }
     } else {
-        std::cout << "Ollama ya está en ejecución.\n";
+        std::string Msg = "Ollama ya está en ejecución.\n";
+        modelog(Msg);
     }
 }
 
@@ -238,7 +255,8 @@ void inicializar_historial(const std::string& ruta_json, ollama::messages& histo
             }
         }
 
-        std::cout << "Historial cargado desde " << ruta_json << "\n";
+        std::string Msg = "Historial cargado desde " + ruta_json + "\n";
+        modelog(Msg);
 }
 
 void inicializar_opciones(const std::string& ruta_json, ollama::options& opciones) {
@@ -265,7 +283,8 @@ void inicializar_opciones(const std::string& ruta_json, ollama::options& opcione
         }
     }
 
-    std::cout << "Opciones cargadas desde " << ruta_json << "\n";
+    std::string Msg = "Opciones cargadas desde " + ruta_json + "\n";
+    modelog(Msg);
 }
 
 void format_response_for_audio(const std::string& input, std::string &output) {

@@ -24,23 +24,6 @@ void customWhisperLogCallback(ggml_log_level level, const char * text, void * us
     }
 }
 
-//Logging error and success messages from other functions
-void logMsg(const std::string& message) {
-    
-    std::string logDirectory = "../logs/"; 
-    std::filesystem::create_directories(logDirectory);
-    std::string logFilePath = logDirectory + "transcriber.log";
-
-    std::ofstream logFile(logFilePath, std::ios::app); // Open in append mode
-    if (logFile) {
-        logFile << message << std::endl;
-        logFile.close();
-    } else {
-        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
-    }
-}
-
-
 // Constructor
 Transcriber::Transcriber(const std::string &modelPath, const std::string &audioPath) {
     const std::string logDirectory = "../logs";
@@ -78,6 +61,22 @@ Transcriber::Transcriber(const std::string &modelPath, const std::string &audioP
 // Destructor
 Transcriber::~Transcriber() {
     whisper_free(ctx);
+}
+
+//Logging error and success messages from other functions
+void logMsg(const std::string& message) {
+    
+    std::string logDirectory = "../logs/"; 
+    std::filesystem::create_directories(logDirectory);
+    std::string logFilePath = logDirectory + "transcriber.log";
+
+    std::ofstream logFile(logFilePath, std::ios::app); // Open in append mode
+    if (logFile) {
+        logFile << message << std::endl;
+        logFile.close();
+    } else {
+        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
+    }
 }
 
 // Función para obtener la configuración de la terminal
@@ -292,7 +291,7 @@ std::string Transcriber::transcribe_audio() {
     }
 
     int num_segments = whisper_num_segmentos(ctx);
-    std::string transcript;
+    std::string transcript = "You:";
     for (int i = 0; i < num_segments; ++i) {
         transcript += whisper_obtener_texto_segmento(ctx, i);
         transcript += " ";

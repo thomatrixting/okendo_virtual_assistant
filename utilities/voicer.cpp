@@ -6,22 +6,6 @@
 #include <cstdio> 
 #include <filesystem>
 
-//Logging error and success messages from other functions
-void logMsg(const std::string& message) {
-    
-    std::string logDirectory = "../logs/"; 
-    std::filesystem::create_directories(logDirectory);
-    std::string logFilePath = logDirectory + "voicer.log";
-
-    std::ofstream logFile(logFilePath, std::ios::app); // Open in append mode
-    if (logFile) {
-        logFile << message << std::endl;
-        logFile.close();
-    } else {
-        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
-    }
-}
-
 Voicer::Voicer(std::string archivo, std::string audio)
     : archivoTexto(std::move(archivo)), archivoAudio(std::move(audio)) {}
 
@@ -65,11 +49,27 @@ void Voicer::capturarTexto() {
 
 }
 
+//Logging error and success messages from other functions
+void voicerlog(const std::string& message) {
+    
+    std::string logDirectory = "../logs/"; 
+    std::filesystem::create_directories(logDirectory);
+    std::string logFilePath = logDirectory + "voicer.log";
+
+    std::ofstream logFile(logFilePath, std::ios::app); // Open in append mode
+    if (logFile) {
+        logFile << message << std::endl;
+        logFile.close();
+    } else {
+        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
+    }
+}
+
 //Function that creates a temporary file with the mapped prompt text and generates audio with eSpeak NG.
 void Voicer::generarAudio(const std::string &texto) {
     if (texto.empty()) {
         std::string errMsg = "Warning: No text provided for audio generation.";
-        logMsg(errMsg);
+        voicerlog(errMsg);
         return;
     }
 
@@ -78,7 +78,7 @@ void Voicer::generarAudio(const std::string &texto) {
     std::ofstream outFile(tempFile);
     if (!outFile) {
         std::string errMsg = "❌ Error: Could not create temporary file for text input.";
-        logMsg(errMsg);
+        voicerlog(errMsg);
         return;
     }
     outFile << texto;
@@ -93,7 +93,7 @@ void Voicer::generarAudio(const std::string &texto) {
     FILE* pipe = popen(comando.str().c_str(), "r");
     if (!pipe) {
         std::string errMsg = "❌ Error: Failed to execute audio command.";
-        logMsg(errMsg);
+        voicerlog(errMsg);
         return;
     }
     pclose(pipe);
