@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "json.hpp"
-#include "ollama.hpp"
+#include "../utilities/json.hpp"
+#include "../utilities/ollama.hpp"
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
