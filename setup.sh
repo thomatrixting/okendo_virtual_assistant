@@ -62,6 +62,10 @@ if [ $? -ne 0 ]; then
     return 1
 fi
 
+#generate models
+ollama create Fast_response_assitant -f "$ROOT_DIR/utilities/models/fast_response_MODELFILE"
+ollama create chat_response_assitant -f "$ROOT_DIR/utilities/models/chat_response_MODELFILE"
+
 # Crear el directorio de comandos si no existe
 COMMANDS_DIR="$ROOT_DIR/commands"
 if [ ! -d "$COMMANDS_DIR" ]; then
@@ -90,3 +94,5 @@ alias amfq="$COMMANDS_DIR/amfq.out"
 alias chat="$COMMANDS_DIR/chat.out"
 
 echo "¡Configuración completada exitosamente! Los comandos 'amfq' y 'chat' están disponibles para esta sesión."
+
+trap - ERR

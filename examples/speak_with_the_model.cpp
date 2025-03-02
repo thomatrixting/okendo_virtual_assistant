@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     ollama::messages historial;
     inicializar_historial(historial_json, historial);
 
-    std::string modelo = opciones["model"];
+    std::string modelo = opciones["model_chat_response"];
     std::string initial_instruction = opciones["initial_intrucion"];
 
     // Adjust for detailed response if flag is set
