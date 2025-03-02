@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include "whisper.h"
+#include "../utilities/whisper.cpp/include/whisper.h"
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -59,7 +59,7 @@ bool keyboardhit();
 class Transcriber {
 private:
     ModeloWhisper* ctx;
-    const char* audioFile;
+    std::string audioFile;
     const char* recordCommand;
     const char* stopCommand;
 
