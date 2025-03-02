@@ -80,4 +80,61 @@ else
     fi
 fi
 
+# -------------------------------
+# Step 5: Checks and install aplay locally (if not already present)
+# -------------------------------
 
+# 1. Check if 'aplay' is installed
+if ! command -v aplay &> /dev/null; then
+  echo "'aplay' not found. Attempting local installation of alsa-utils..."
+
+  # 2. Install alsa-utils locally (this installs aplay)
+  git clone https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/alsa-utils.git
+  cd alsa-utils
+  ./configure --prefix=$HOME/.local
+  make -j$(nproc)
+  if ! make install; then
+    echo "Warning: Failed to install 'aplay' (alsa-utils). You might not be able to play sound."
+  else
+    echo "Successfully installed 'aplay' locally."
+  fi
+  # Return to the previous directory
+  cd ..
+else
+  echo "'aplay' is already installed. Skipping installation."
+fi
+
+# -------------------------------
+# Step 6: Clone and build eSpeak NG (if not already present)
+# -------------------------------
+
+# 1. Check if eSpeak is already installed
+if ! command -v espeak &> /dev/null; then
+  echo "eSpeak not found. Proceeding with installation..."
+
+  # 2. Cloning and checking out the release in the eSpeak NG repository                  
+  git clone https://github.com/espeak-ng/espeak-ng.git
+  cd espeak-ng
+  git checkout tags/1.52.0  # Ensure this tag exists
+
+  # 3. Create and build eSpeak NG
+  mkdir -p build && cd build
+  cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/.local
+  make -j$(nproc)
+  if ! make install; then
+    echo "make install failed, copying the binary manually..."
+    mkdir -p $HOME/.local/bin
+    cp ~/espeak-ng/build/src/espeak $HOME/.local/bin/
+    chmod +x $HOME/.local/bin/espeak
+  fi
+
+  # 10. Add the local installation to your PATH and update LD_LIBRARY_PATH
+  echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.zshrc
+  echo 'export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH' >> ~/.zshrc
+  source ~/.zshrc
+else
+  echo "eSpeak is already installed. Skipping installation."
+fi
+
+# 11. Test eSpeak with audio output
+espeak "Hello, this is a test" --stdout | aplay
