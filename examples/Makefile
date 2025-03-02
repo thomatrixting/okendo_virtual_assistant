@@ -1,0 +1,32 @@
+# Compiler
+CXX = g++
+CXXFLAGS = -std=c++17 -fsanitize=undefined -g
+
+# Directories
+UTILS = ../utilities
+WHISPER_DIR = $(UTILS)/whisper.cpp
+GGML_DIR = $(WHISPER_DIR)/ggml
+BUILD_DIR = $(WHISPER_DIR)/build/src
+
+# Include and Library Paths
+INCLUDES = -I$(WHISPER_DIR)/include -I$(GGML_DIR)/include
+LIBS = -L$(BUILD_DIR) -lwhisper
+
+# Source Files
+SRCS = OVA_v5.0.cpp \
+       $(UTILS)/call_the_model.cpp \
+       $(UTILS)/transcriber.cpp \
+       $(UTILS)/amfq.cpp \
+       $(UTILS)/chat.cpp \
+       $(UTILS)/voicer.cpp
+
+# Output Executable
+TARGET = OVA_v5.0.out
+
+# Compilation Rule
+$(TARGET): $(SRCS)
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) $(SRCS) $(LIBS) -o $(TARGET)
+
+# Clean Rule
+clean:
+	@rm -f $(TARGET)
