@@ -13,7 +13,7 @@ INCLUDES = -I$(WHISPER_DIR)/include -I$(GGML_DIR)/include
 LIBS = -L$(BUILD_DIR) -lwhisper
 
 # Source Files
-SRCS = OVA_v5.0.cpp \
+SRCS = OVA.cpp \
        $(UTILS)/call_the_model.cpp \
        $(UTILS)/transcriber.cpp \
        $(UTILS)/amfq.cpp \
@@ -21,7 +21,7 @@ SRCS = OVA_v5.0.cpp \
        $(UTILS)/voicer.cpp
 
 # Output Executable
-TARGET = OVA_v5.0.out
+TARGET = OVA.out
 
 # Compilation Rule
 $(TARGET): $(SRCS)
