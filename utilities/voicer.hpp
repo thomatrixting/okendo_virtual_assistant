@@ -21,7 +21,6 @@ public:
 
     // Métodos
     void capturarTexto();
-    void leerArchivo(std::string &texto);
     void generarAudio(const std::string &texto);
 };
 
