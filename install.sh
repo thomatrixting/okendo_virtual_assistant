@@ -1,5 +1,48 @@
 #!/bin/bash
 
+#!/bin/bash
+
+# Exit on any error and print an error message
+set -e
+trap 'echo "❌ Error: Script failed at line $LINENO"; exit 1' ERR
+
+# Ensure script runs in both Bash and Zsh
+if [[ -z "$BASH_VERSION" && -z "$ZSH_VERSION" ]]; then
+  echo "❌ This script requires Bash or Zsh to run."
+  exit 1
+fi
+
+# Define installation directory
+UTILITIES_DIR="$HOME/utilities"
+LOCAL_INSTALL_DIR="$HOME/.local"
+BIN_DIR="$LOCAL_INSTALL_DIR/bin"
+LIB_DIR="$LOCAL_INSTALL_DIR/lib"
+
+# Ensure utilities directory exists
+mkdir -p "$UTILITIES_DIR"
+mkdir -p "$BIN_DIR"
+mkdir -p "$LIB_DIR"
+
+# Detect shell configuration file (for PATH updates)
+if [[ -n "$BASH_VERSION" ]]; then
+  SHELL_RC="$HOME/.bashrc"
+elif [[ -n "$ZSH_VERSION" ]]; then
+  SHELL_RC="$HOME/.zshrc"
+fi
+
+#!/bin/bash
+
+# Exit on any error and print an error message
+set -e
+trap 'echo "❌ Error: Script failed at line $LINENO"; exit 1' ERR
+
+# -------------------------------
+# Function: Detect Script Directory
+# -------------------------------
+find_script_directory() {
+    local dir
+    dir="$(dirname "$(realpath "$0")")"
+
 # -------------------------------
 # Step 1: Download Ollama
 # -------------------------------
@@ -80,61 +123,112 @@ else
     fi
 fi
 
+
+
+    # Check if .here exists in the directory
+    if [ ! -f "$dir/.here" ]; then
+        echo "❌ Error: .here file not found in script directory ($dir)."
+        exit 1
+    fi
+
+    echo "$dir"
+}
+
+# Get the script location
+SCRIPT_DIR="$(find_script_directory)"
+
+# Define paths based on script location
+UTILITIES_DIR="$SCRIPT_DIR/utilities"
+LOCAL_INSTALL_DIR="$SCRIPT_DIR/.local"
+BIN_DIR="$LOCAL_INSTALL_DIR/bin"
+LIB_DIR="$LOCAL_INSTALL_DIR/lib"
+COMMANDS_DIR="$SCRIPT_DIR/commands"
+CUSTOM_BASHRC="$COMMANDS_DIR/.bashrc"
+
+# Ensure necessary directories exist
+mkdir -p "$UTILITIES_DIR"
+mkdir -p "$BIN_DIR"
+mkdir -p "$LIB_DIR"
+mkdir -p "$COMMANDS_DIR"
+
+# Ensure the custom bashrc file exists
+touch "$CUSTOM_BASHRC"
+
 # -------------------------------
-# Step 5: Checks and install aplay locally (if not already present)
+# Step 1: Checks and install 'aplay' locally (if not already present)
 # -------------------------------
 
-# 1. Check if 'aplay' is installed
 if ! command -v aplay &> /dev/null; then
-  echo "'aplay' not found. Attempting local installation of alsa-utils..."
+  echo "🔧 'aplay' not found. Installing alsa-utils locally..."
 
-  # 2. Install alsa-utils locally (this installs aplay)
-  git clone https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/alsa-utils.git
+  cd "$UTILITIES_DIR"
+  if [ ! -d "alsa-utils" ]; then
+    git clone https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/alsa-utils.git
+  fi
   cd alsa-utils
-  ./configure --prefix=$HOME/.local
+
+  ./configure --prefix="$LOCAL_INSTALL_DIR"
   make -j$(nproc)
-  if ! make install; then
-    echo "Warning: Failed to install 'aplay' (alsa-utils). You might not be able to play sound."
-  else
-    echo "Successfully installed 'aplay' locally."
-  fi
-  # Return to the previous directory
-  cd ..
+  make install
+
+  echo "✅ Successfully installed 'aplay'."
 else
-  echo "'aplay' is already installed. Skipping installation."
+  echo "✔️ 'aplay' is already installed. Skipping installation."
 fi
 
 # -------------------------------
-# Step 6: Clone and build eSpeak NG (if not already present)
+# Step 2: Clone and build eSpeak NG (if not already present)
 # -------------------------------
 
-# 1. Check if eSpeak is already installed
 if ! command -v espeak &> /dev/null; then
-  echo "eSpeak not found. Proceeding with installation..."
+  echo "🔧 'eSpeak' not found. Proceeding with installation..."
 
-  # 2. Cloning and checking out the release in the eSpeak NG repository                  
-  git clone https://github.com/espeak-ng/espeak-ng.git
+  cd "$UTILITIES_DIR"
+  if [ ! -d "espeak-ng" ]; then
+    git clone https://github.com/espeak-ng/espeak-ng.git
+  fi
   cd espeak-ng
-  git checkout tags/1.52.0  # Ensure this tag exists
 
-  # 3. Create and build eSpeak NG
+  git checkout tags/1.52.0
+
   mkdir -p build && cd build
-  cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/.local
+  cmake .. -DCMAKE_INSTALL_PREFIX="$LOCAL_INSTALL_DIR"
   make -j$(nproc)
-  if ! make install; then
-    echo "make install failed, copying the binary manually..."
-    mkdir -p $HOME/.local/bin
-    cp ~/espeak-ng/build/src/espeak $HOME/.local/bin/
-    chmod +x $HOME/.local/bin/espeak
+  make install || {
+    echo "⚠️ 'make install' failed, copying the binary manually..."
+    cp src/espeak-ng "$BIN_DIR/espeak"
+    chmod +x "$BIN_DIR/espeak"
+  }
+
+  if [ ! -f "$BIN_DIR/espeak" ]; then
+    ln -s "$BIN_DIR/espeak-ng" "$BIN_DIR/espeak"
   fi
 
-  # 10. Add the local installation to your PATH and update LD_LIBRARY_PATH
-  echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.zshrc
-  echo 'export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH' >> ~/.zshrc
-  source ~/.zshrc
+  echo "✅ Successfully installed 'eSpeak'."
 else
-  echo "eSpeak is already installed. Skipping installation."
+  echo "✔️ 'eSpeak' is already installed. Skipping installation."
 fi
 
-# 11. Test eSpeak with audio output
+# -------------------------------
+# Step 3: Update the custom shell profile (commands/.bashrc)
+# -------------------------------
+
+if ! grep -q "$BIN_DIR" "$CUSTOM_BASHRC"; then
+  echo "export PATH=$BIN_DIR:\$PATH" >> "$CUSTOM_BASHRC"
+fi
+if ! grep -q "$LIB_DIR" "$CUSTOM_BASHRC"; then
+  echo "export LD_LIBRARY_PATH=$LIB_DIR:\$LD_LIBRARY_PATH" >> "$CUSTOM_BASHRC"
+fi
+
+# Inform user to source the custom bashrc
+echo "✅ Please run: source $CUSTOM_BASHRC to apply changes."
+
+# -------------------------------
+# Step 4: Test eSpeak with audio output
+# -------------------------------
+
+echo "🔊 Testing eSpeak output..."
+source "$CUSTOM_BASHRC"
 espeak "Hello, this is a test" --stdout | aplay
+
+echo "🎉 Installation completed successfully!"
