@@ -4,6 +4,23 @@
 #include <sstream>
 #include <vector>
 #include <cstdio> 
+#include <filesystem>
+
+//Logging error and success messages from other functions
+void logMsg(const std::string& message) {
+    
+    std::string logDirectory = "../logs/"; 
+    std::filesystem::create_directories(logDirectory);
+    std::string logFilePath = logDirectory + "voicer.log";
+
+    std::ofstream logFile(logFilePath, std::ios::app); // Open in append mode
+    if (logFile) {
+        logFile << message << std::endl;
+        logFile.close();
+    } else {
+        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
+    }
+}
 
 Voicer::Voicer(std::string archivo, std::string audio)
     : archivoTexto(std::move(archivo)), archivoAudio(std::move(audio)) {}
@@ -51,7 +68,8 @@ void Voicer::capturarTexto() {
 //Function that creates a temporary file with the mapped prompt text and generates audio with eSpeak NG.
 void Voicer::generarAudio(const std::string &texto) {
     if (texto.empty()) {
-        std::cerr << "Warning: No text provided for audio generation." << std::endl;
+        std::string errMsg = "Warning: No text provided for audio generation.";
+        logMsg(errMsg);
         return;
     }
 
@@ -59,7 +77,8 @@ void Voicer::generarAudio(const std::string &texto) {
     std::string tempFile = "/tmp/voicer_text.txt";
     std::ofstream outFile(tempFile);
     if (!outFile) {
-        std::cerr << "❌ Error: Could not create temporary file for text input." << std::endl;
+        std::string errMsg = "❌ Error: Could not create temporary file for text input.";
+        logMsg(errMsg);
         return;
     }
     outFile << texto;
@@ -73,7 +92,8 @@ void Voicer::generarAudio(const std::string &texto) {
     // Execute the command safely
     FILE* pipe = popen(comando.str().c_str(), "r");
     if (!pipe) {
-        std::cerr << "❌ Error: Failed to execute audio command." << std::endl;
+        std::string errMsg = "❌ Error: Failed to execute audio command.";
+        logMsg(errMsg);
         return;
     }
     pclose(pipe);
