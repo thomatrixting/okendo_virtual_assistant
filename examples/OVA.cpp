@@ -17,6 +17,7 @@ void speak(const std::string& text);
 std::string getResponse(const std::string& query);
 void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput);
 std::unordered_map<std::string, std::string> loadOptions(const std::string& filename);
+void OVAlog(const std::string& message);
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -44,12 +45,28 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+void OVAlog(const std::string& message) {
+    
+    std::string logDirectory = "../logs/"; 
+    std::filesystem::create_directories(logDirectory);
+    std::string logFilePath = logDirectory + "OVA.log";
+
+    std::ofstream logFile(logFilePath, std::ios::app); // Open in append mode
+    if (logFile) {
+        logFile << message << std::endl;
+        logFile.close();
+    } else {
+        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
+    }
+}
+
 std::unordered_map<std::string, std::string> loadOptions(const std::string& filename) {
     std::unordered_map<std::string, std::string> options;
     std::ifstream file(filename);
     
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open " << filename << std::endl;
+        std::string errMsg = "Error: Could not open " + filename;
+        OVAlog(errMsg);
         return options;
     }
 
@@ -61,13 +78,16 @@ std::unordered_map<std::string, std::string> loadOptions(const std::string& file
             options[key] = value.is_string() ? value.get<std::string>() : value.dump();
         }
 
-        std::cout << "Loaded options:\n";
+        std::string Msg = "Loaded options:\n";
+        OVAlog(Msg);
         for (const auto& [key, value] : options) {
-            std::cout << key << " -> " << value << std::endl;
+            std::string Msg = key + " -> " + value;
+            OVAlog(Msg);
         }
         
     } catch (const std::exception& e) {
-        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+        std::string errMsg = std::string("JSON parsing error: ") + e.what();
+        OVAlog(errMsg);
     }
 
     return options;
@@ -84,7 +104,8 @@ std::string getResponse(const std::string& query) {
     std::vector<std::string> required_keys = {"model", "initial_intrucion"};
     for (const auto& key : required_keys) {
         if (opciones.find(key) == opciones.end()) {
-            return std::string("Error: Missing required key in options: ") + key;
+            std::string errMsg = "Error: Missing required key in options: " + key;
+            OVAlog(errMsg);
         }
     }
     
@@ -108,11 +129,15 @@ std::string getResponse(const std::string& query) {
             return historial.back()["content"];
         }
     } catch (const std::exception& e) {
-        std::cerr << "Exception caught: " << e.what() << std::endl;
+        //left logging
+        std::string errMsg = std::string("Exception caught: ") + e.what();
+        OVAlog(errMsg);
     } catch (...) {
-        std::cerr << "Unknown error occurred." << std::endl;
+        //left logging
+        std::string errMsg = "Unknown error occurred.";
+        OVAlog(errMsg);
     }
-    
+    //left logging
     return "Error: No response received.";
 }
 
@@ -130,6 +155,7 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
         
         if (useVoiceInput) {
             transcriber.start_microphone();
+            system("pkill aplay");
             transcriber.stop_microphone();
             input = transcriber.transcribe_audio();
             
@@ -148,14 +174,12 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
             std::getline(std::cin, input);
         }
 
-        if (input == "exit") { 
+        if (input == "you: exit") { 
         system("pkill aplay"); 
         break;
         }
 
         std::string response = getResponse(input);
-        std::cout << "Assistant: " << response << std::endl;
-
         if (useVoiceOutput) std::thread(speak, response).detach();
 
         if (mode == "amfq") break;
