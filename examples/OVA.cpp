@@ -148,7 +148,10 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
             std::getline(std::cin, input);
         }
 
-        if (input == "exit") break;
+        if (input == "exit") { 
+        system("pkill aplay"); 
+        break;
+        }
 
         std::string response = getResponse(input);
         std::cout << "Assistant: " << response << std::endl;
@@ -158,4 +161,3 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
         if (mode == "amfq") break;
     }
 }
-
