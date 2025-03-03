@@ -1,6 +1,6 @@
 # Compiler
 CXX = g++
-CXXFLAGS = -std=c++17 -fsanitize=undefined -g
+CXXFLAGS = -std=c++17 -fsanitize=undefined -g -Wl,-rpath,$(BUILD_DIR)
 
 # Directories
 UTILS = ../utilities
