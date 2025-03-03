@@ -62,7 +62,7 @@ if [[ -f "ollama-linux.tgz" ]]; then
     echo "Extracting Ollama..."
     tar -xvzf ollama-linux.tgz -C "$LOCAL_INSTALL_DIR" || handle_error "Failed to extract Ollama."
 else
-    handle_error "ollama-linux.tgz not found."
+    handle_error "ollama-linux.tgz not found please run the command without --omit_download_ollama"
 fi
 
 # Clone and build whisper.cpp

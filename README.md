@@ -89,6 +89,8 @@ This project uses:
 
 ## Usage and Examples
 
+## ask my fun question (`amfq` Command)
+
 Once installed and set up, you can start using OVA by running:
 
 ```bash
@@ -145,5 +147,63 @@ OVA will provide an immediate response based on the best matching Linux command.
 
 ---
 
+
+## Chat Session (`chat` Command)
+
+The `chat` command allows users to have an interactive conversation with the assistant.
+
+### Command-Line Options
+
+- `-d`: Starts the chat session with detailed responses.
+- `--help`: Displays usage information.
+
+### Example Usage
+
+To start a chat session, run:
+
+```bash
+chat
+```
+
+For a detailed response mode, use:
+
+```bash
+chat -d
+```
+
+To exit the chat session, type `/bye`.
+
+### Compilation and Execution
+
+To compile `chat`, use:
+
+```bash
+g++ -std=c++17 -fsanitize=undefined speak_with_the_model.cpp ../utilities/call_the_model.cpp -o chat.out -g
+```
+
+Run it with:
+
+```bash
+./chat.out
+```
+
+### Example Session
+
+```
+Tú: Hello!
+Assistant: Hi! How can I assist you today?
+
+Tú: What is the capital of France?
+Assistant: The capital of France is Paris.
+
+Tú: /bye
+Saliendo del chat...
+```
+
+(Insert your example here)
+
+---
+
 Feel free to contribute or report issues to improve OVA!
+
 
