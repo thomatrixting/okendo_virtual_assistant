@@ -30,6 +30,13 @@ if [ ! -d "$ROOT_DIR" ]; then
     exit 1
 fi
 
+UTILITIES_DIR="$ROOT_DIR/utilities"
+LOCAL_INSTALL_DIR="$ROOT_DIR/.local"
+BIN_DIR="$LOCAL_INSTALL_DIR/bin"
+LIB_DIR="$LOCAL_INSTALL_DIR/lib"
+CUSTOM_BASHRC="$COMMANDS_DIR/.bashrc"
+OLLAMA_BIN="$BIN_DIR/ollama"
+
 # Define bashrc path
 BASHRC_FILE="$ROOT_DIR/commands/.bashrc"
 mkdir -p "$ROOT_DIR/commands"
@@ -55,7 +62,7 @@ add_export() {
 
 
 # Add binary to PATH
-add_export "PATH" "$ROOT_DIR/bin:$PATH"
+add_export "PATH" "$BIN_DIR:$PATH"
 
 # Create logs directory
 LOG_DIR="$ROOT_DIR/logs"
