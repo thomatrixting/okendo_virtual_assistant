@@ -174,14 +174,27 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
             std::getline(std::cin, input);
         }
 
-        if (input == "you: exit") { 
-        system("pkill aplay"); 
-        break;
+        if (input.find("exit") != std::string::npos) { 
+            system("pkill aplay");
+            break;
         }
 
         std::string response = getResponse(input);
-        if (useVoiceOutput) std::thread(speak, response).detach();
+
+        // Handle voice output correctly
+        if (useVoiceOutput) {
+            if (mode == "amfq") {
+                // If in AMFQ mode, wait for speak to finish
+                std::thread speechThread(speak, response);
+                speechThread.join();
+            } else {
+                // If in chat mode, run speak in the background
+                std::thread(speak, response).detach();
+            }
+        }
 
         if (mode == "amfq") break;
     }
+
+    system("pkill aplay"); // Ensure aplay is stopped at the very end
 }
