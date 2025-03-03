@@ -3,13 +3,26 @@
 # Ejemplo: ./setup.sh "$(pwd)" --recompile
 # use this command ./setup.sh "$(pwd)" -r && source "$(pwd)/commands/.bashrc"
 
+# Create logs directory 
+LOG_DIR="$ROOT_DIR/logs"
+mkdir -p "$LOG_DIR"
+rm -rf "$LOG_DIR"/*.logs
+
+# Define setup log file and clear previous logs
+LOG_FILE="$LOG_DIR/setup.log"
+
+# Redirect all output to log file AND terminal (testing)
+exec > >(tee -a "$LOG_FILE") 2>&1
+# exec > "$LOG_FILE" 2>&1 to send all to log file only
+
 # Function to handle errors
 handle_error() {
-    echo "Error: $1"
+    echo "⚠️  Error en la linea $LINENO: $1" >&2
+    echo "Revisa el archivo log: $LOG_FILE" >&2
     exit 1
 }
 
-trap 'echo "Error on line $LINENO"' ERR
+trap 'handle_error "Comando fallido."' ERR
 
 # Verify provided arguments
 if [ -z "$1" ]; then
@@ -63,11 +76,6 @@ add_export() {
 
 # Add binary to PATH
 add_export "PATH" "$BIN_DIR:$PATH"
-
-# Create logs directory
-LOG_DIR="$ROOT_DIR/logs"
-mkdir -p "$LOG_DIR"
-rm -rf "$LOG_DIR"/*.log  # Clear logs
 
 # Stop Ollama server if running
 if lsof -i :11434 &> /dev/null; then
