@@ -11,7 +11,7 @@ GGML_BUILD_DIR = $(WHISPER_DIR)/build/ggml/src
 
 # Include and Library Paths
 INCLUDES = -I$(WHISPER_DIR)/include -I$(GGML_DIR)/include
-LIBS = -L$(BUILD_DIR) -lwhisper -L$(GGML_BUILD_DIR) -lggml -Wl,--no-as-needed
+LIBS = -L$(BUILD_DIR) -lwhisper -L$(GGML_BUILD_DIR) -lggml -lggml-cpu -Wl,--no-as-needed
 
 # Source Files
 SRCS = OVA.cpp \
