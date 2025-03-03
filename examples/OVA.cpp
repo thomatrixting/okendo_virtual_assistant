@@ -14,8 +14,8 @@
 
 // Funciones auxiliares
 void speak(const std::string& text);
-std::string getResponse(const std::string& query);
-void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput);
+std::string getResponse(const std::string& query,const std::string& mode,bool &detail_response);
+void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput, bool detail_response);
 std::unordered_map<std::string, std::string> loadOptions(const std::string& filename);
 void OVAlog(const std::string& message);
 
@@ -27,16 +27,17 @@ int main(int argc, char* argv[]) {
     
     std::string mode = argv[1];
     std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
-    bool useVoiceInput = false, useVoiceOutput = false;
+    bool useVoiceInput = false, useVoiceOutput = false; bool Detail_response = false;
     
     for (int i = 2; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg == "--voice") useVoiceInput = true;
-        else if (arg == "--speak") useVoiceOutput = true;
+        if (arg == "--speak") useVoiceOutput = true;
+        if (arg == "--detail") Detail_response = true;
     }
     
     if (mode == "chat" || mode == "amfq") {
-        runMode(mode, useVoiceInput, useVoiceOutput);
+        runMode(mode, useVoiceInput, useVoiceOutput, Detail_response);
     } else {
         std::cerr << "Invalid mode. Please use 'chat' or 'amfq'." << std::endl;
         return 1;
@@ -93,7 +94,7 @@ std::unordered_map<std::string, std::string> loadOptions(const std::string& file
     return options;
 }
 
-std::string getResponse(const std::string& query) {
+std::string getResponse(const std::string& query,const std::string& mode,bool &detail_response) {
     std::string command_dir = get_commands_directory();
     std::string historial_json = command_dir + "/historial_test.json";
     std::string opciones_json = command_dir + "/opcions.json";
@@ -116,12 +117,34 @@ std::string getResponse(const std::string& query) {
     }
     
     try {
-        verificar_ollama(opciones["model"]);
+        std::string model = opciones["model"];
+
+        if (!detail_response){
+            if(mode == "amfq"){
+                model = opciones["model_fast_response"];
+            } else {
+                model = opciones["model_chat_response"];
+
+            }
+        } else {
+            if(mode == "amfq"){
+                model = opciones["model_chat_response"];
+            } else {
+                model = opciones["model_chat_response_unrestricted"];
+            }
+        }
+
+        verificar_ollama(model);
         
         // Convert unordered_map to ollama::options class
         ollama::options convertedOptions;
-        convertedOptions["model"] = opciones["model"];
-        convertedOptions["initial_intrucion"] = opciones["initial_intrucion"];
+        convertedOptions["model"] = model;
+
+        if (detail_response){
+            convertedOptions["initial_intrucion"] = opciones["detail_initial_intrucion"];
+        } else {
+            convertedOptions["initial_intrucion"] = opciones["initial_intrucion"];
+        }
         
         obtener_respuesta(historial, convertedOptions["model"], convertedOptions, convertedOptions["initial_intrucion"], query, "user");
         if (!historial.empty() && historial.back().count("content")) {
@@ -145,7 +168,7 @@ void speak(const std::string& text) {
     Voicer("transcripcion.txt", "audiogene.wav").generarAudio(text);
 }
 
-void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
+void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput, bool detail_response) {
     Transcriber transcriber("../utilities/whisper.cpp/models/ggml-base.bin", "audio.wav");
     std::cout << "Entering " << (mode == "chat" ? "Chat" : "AMFQ") << " Mode. Say or type 'exit' to quit." << std::endl;
 
@@ -179,7 +202,7 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
         break;
         }
 
-        std::string response = getResponse(input);
+        std::string response = getResponse(input, mode, detail_response);
         if (useVoiceOutput) std::thread(speak, response).detach();
 
         if (mode == "amfq") break;

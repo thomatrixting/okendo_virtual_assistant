@@ -12,7 +12,7 @@ PARAMETER temperature 0.1
 PARAMETER top_k 10
 
 # Penalize token repetition to avoid redundant responses
-PARAMETER repeat_penalty 1.05
+PARAMETER repeat_penalty 1.15
 
 # Optimize processing speed
 PARAMETER num_thread 4
