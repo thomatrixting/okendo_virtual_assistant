@@ -35,17 +35,24 @@ BASHRC_FILE="$ROOT_DIR/commands/.bashrc"
 mkdir -p "$ROOT_DIR/commands"
 touch "$BASHRC_FILE"
 
-# Function to add exports safely
+# Function to add exports safely and apply them immediately
 add_export() {
     local var="$1"
     local value="$2"
+
+    # Check if the variable is already in the bashrc file
     if ! grep -q "^export $var=" "$BASHRC_FILE"; then
         echo "export $var=\"$value\"" >> "$BASHRC_FILE"
         echo "Export '$var' added to $BASHRC_FILE."
     else
         echo "Export '$var' already exists in $BASHRC_FILE. Skipping."
     fi
+
+    # Apply the export immediately
+    export "$var"="$value"
+    echo "Export '$var' applied to current session."
 }
+
 
 # Add binary to PATH
 add_export "PATH" "$ROOT_DIR/bin:$PATH"
