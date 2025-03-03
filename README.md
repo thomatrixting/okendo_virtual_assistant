@@ -1,6 +1,8 @@
 # Okendo Virtual Assistant (OVA)
 
-OVA is a virtual assistant running on C++ for most Linux distributions. It uses Whisper and DeepSeek to automate tasks and provide advice on different topics.
+OVA is a virtual assistant running on C++ for most Linux distributions. It uses Whisper, Espeak and DeepSeek to help as an assitant for the comand line and programing
+
+it has capabilities to respond rapidly to simple questions so you can remeber the sintax and the especific usecases of almost any command on the linux terminal interface. you can tryit yourself by typing on your terminal amfq or ova amfq and then typing you question 
 
 ## Installation
 
