@@ -79,9 +79,13 @@ Now you're ready to use OVA!
 ## Dependencies
 
 This project uses:
-- **Espeak v1.52.0** (speech synthesis)
-- **Alsa-utils** (audio utilities from the Linux kernel)
-- 
+- **[Espeak](https://github.com/espeak-ng/espeak-ng) v1.52.0 (latest)** (speech synthesis)
+- **[Alsa-utils](https://web.git.kernel.org/)** (audio utilities from the Linux kernel)
+- **[Ollama v0.5.13-rc5](https://ollama.com/download/ollama-linux-amd64-rocm.tgz) (latest)** (for handeling llm models on your pc)
+- **[deepseek-coder1.3b](https://huggingface.co/deepseek-ai/deepseek-coder-1.3b-instruct) (from deepseek)** (the llm that powers the whole proyect)
+- **[ollama-hpp](https://github.com/jmont-dev/ollama-hpp) v0.9.4(latest) (from jmont-dev)** (to handle ollama from c++)
+- **[whisper.cpp v1.7.4](https://github.com/ggerganov/whisper.cpphttps://github.com/ggerganov/whisper.cpp)(latest)** (to interpret voice into text)
+- **[ggml-base.bin](https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-base.bin)** (the especific model of whisper cpp that makes the transcription)
 
 ## Usage and Examples
 
@@ -96,8 +100,50 @@ For example:
 amfq "How do I list all running processes?"
 ```
 
+### Command-Line Options
+
+The `amfq` command supports additional options:
+
+- `-d`: Requests a detailed response from the assistant.
+- `--help`: Displays usage information.
+
+#### Example Commands:
+
+- **Basic Query:**
+  ```bash
+  amfq "What is the command to list files in a directory?"
+  ```
+  This will return a short and precise response.
+
+- **Detailed Response:**
+  ```bash
+  amfq -d "Explain how to use grep for searching patterns in files."
+  ```
+  This will provide a more in-depth explanation.
+
+- **Help Menu:**
+  ```bash
+  amfq --help
+  ```
+  This displays information about how to use the command.
+
+### Compilation and Execution
+
+To compile `amfq`, use the following command:
+
+```bash
+g++ -std=c++17 -fsanitize=undefined ask_the_model.cpp ../utilities/call_the_model.cpp -o amfq.out -g
+```
+
+Then, run it as:
+
+```bash
+./amfq.out "your query here"
+```
+
 OVA will provide an immediate response based on the best matching Linux command.
 
 ---
 
 Feel free to contribute or report issues to improve OVA!
+
