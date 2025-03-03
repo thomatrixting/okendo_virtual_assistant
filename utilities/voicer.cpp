@@ -84,9 +84,19 @@ void Voicer::generarAudio(const std::string &texto) {
     outFile << texto;
     outFile.close();
 
+    // Check if espeak is available
+    bool espeakAvailable = (system("espeak --version > /dev/null 2>&1") == 0);
+    
+    std::string selectedEngine = espeakAvailable ? "espeak" : "espeak-ng";
+    
+    if (!espeakAvailable) {
+        std::string warnMsg = "⚠️ Warning: 'espeak' not found, switching to 'espeak-ng'.";
+        voicerlog(warnMsg);
+    }
+
     // Construct the espeak command using the temp file
     std::ostringstream comando;
-    comando << "espeak -w " << archivoAudio
+    comando << selectedEngine << " -w " << archivoAudio
             << " --stdout -f " << tempFile << " | aplay > /dev/null 2>&1";
 
     // Execute the command safely

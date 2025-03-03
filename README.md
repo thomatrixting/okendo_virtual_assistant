@@ -89,7 +89,7 @@ This project uses:
 
 ## Usage and Examples
 
-## ask my fun question (`amfq` Command)
+## Ask My Fun Question (`amfq` Command)
 
 Once installed and set up, you can start using OVA by running:
 
@@ -100,6 +100,11 @@ amfq "your query here"
 For example:
 ```bash
 amfq "How do I list all running processes?"
+```
+
+**Output:**
+```
+(Insert example output here)
 ```
 
 ### Command-Line Options
@@ -115,19 +120,28 @@ The `amfq` command supports additional options:
   ```bash
   amfq "What is the command to list files in a directory?"
   ```
-  This will return a short and precise response.
+  **Output:**
+  ```
+  (Insert example output here)
+  ```
 
 - **Detailed Response:**
   ```bash
   amfq -d "Explain how to use grep for searching patterns in files."
   ```
-  This will provide a more in-depth explanation.
+  **Output:**
+  ```
+  (Insert example output here)
+  ```
 
 - **Help Menu:**
   ```bash
   amfq --help
   ```
-  This displays information about how to use the command.
+  **Output:**
+  ```
+  (Insert example output here)
+  ```
 
 ### Compilation and Execution
 
@@ -147,7 +161,6 @@ OVA will provide an immediate response based on the best matching Linux command.
 
 ---
 
-
 ## Chat Session (`chat` Command)
 
 The `chat` command allows users to have an interactive conversation with the assistant.
@@ -165,10 +178,20 @@ To start a chat session, run:
 chat
 ```
 
+**Output:**
+```
+(Insert example output here)
+```
+
 For a detailed response mode, use:
 
 ```bash
 chat -d
+```
+
+**Output:**
+```
+(Insert example output here)
 ```
 
 To exit the chat session, type `/bye`.
@@ -200,10 +223,9 @@ Tú: /bye
 Saliendo del chat...
 ```
 
-(Insert your example here)
+**Output:**
+```
+(Insert example output here)
+```
 
 ---
-
-Feel free to contribute or report issues to improve OVA!
-
-

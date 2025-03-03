@@ -21,7 +21,7 @@ void OVAlog(const std::string& message);
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " [chat|amfq] [--voice] [--speak]" << std::endl;
+        std::cerr << "Usage: " << "ova" << " [chat|amfq] [--voice] [--speak]" << std::endl;
         return 1;
     }
     

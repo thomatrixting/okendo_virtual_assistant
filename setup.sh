@@ -90,7 +90,6 @@ ollama pull deepseek-coder 2>&1 | tee "$LOG_DIR/pull_log.txt" || handle_error "E
 ollama create fast_response_assistant -f "$ROOT_DIR/utilities/models/fast_response_MODELFILE"
 ollama create chat_response_assistant -f "$ROOT_DIR/utilities/models/chat_response_MODELFILE"
 ollama create chat_response_unrestricted -f "$ROOT_DIR/utilities/models/unrestricted_chat_response_MODELFILE"
-
 # Ensure commands directory exists
 COMMANDS_DIR="$ROOT_DIR/commands"
 mkdir -p "$COMMANDS_DIR"
@@ -98,7 +97,7 @@ mkdir -p "$COMMANDS_DIR"
 # Copy example files (if recompiling)
 if [ "$RECOMPILE" = true ]; then
     echo "Recompilación activada. Copiando archivos de código fuente..."
-    for file in "ask_the_model.cpp" "speak_with_the_model.cpp" "opcions.json" "historial_test.json"; do
+    for file in "ask_the_model.cpp" "speak_with_the_model.cpp" "opcions.json" "historial_test.json" "OVA.cpp" "Makefile_OVA"; do
         if [ -f "$ROOT_DIR/examples/$file" ]; then
             cp "$ROOT_DIR/examples/$file" "$COMMANDS_DIR/"
         else
@@ -107,9 +106,9 @@ if [ "$RECOMPILE" = true ]; then
     done
 else
     echo "Recompilación omitida. Se usarán ejecutables existentes si están disponibles."
-    for exe in "amfq.out" "chat.out"; do
+    for exe in "amfq.out" "chat.out" "OVA.out"; do
         if [ ! -f "$COMMANDS_DIR/$exe" ]; then
-            echo "Advertencia: El ejecutable $exe no existe. Puede necesitar recompilar."
+            echo "⚠️⚠️⚠️Advertencia: El ejecutable $exe no existe. Puede necesitar recompilar."
         fi
     done
 fi
@@ -117,6 +116,7 @@ fi
 # Compile C++ files if recompiling
 if [ "$RECOMPILE" = true ]; then
     echo "Compilando los archivos C++..."
+    
     if g++ -std=c++17 -fsanitize=undefined "$COMMANDS_DIR/ask_the_model.cpp" "$ROOT_DIR/utilities/call_the_model.cpp" -o "$COMMANDS_DIR/amfq.out"; then
         echo "Compilación de ask_the_model.cpp exitosa."
     else
@@ -127,6 +127,14 @@ if [ "$RECOMPILE" = true ]; then
         echo "Compilación de speak_with_the_model.cpp exitosa."
     else
         handle_error "Fallo la compilación de speak_with_the_model.cpp."
+    fi
+
+    # Compile OVA.cpp using Makefile_OVA
+    echo "Compilando OVA.cpp usando Makefile_OVA..."
+    if make -f "$COMMANDS_DIR/Makefile_OVA" -C "$COMMANDS_DIR"; then
+        echo "Compilación de OVA.cpp exitosa."
+    else
+        handle_error "Fallo la compilación de OVA.cpp."
     fi
 else
     echo "Recompilación omitida. Usando ejecutables existentes."
@@ -158,6 +166,7 @@ add_alias() {
 
 add_alias "amfq" "$COMMANDS_DIR/amfq.out"
 add_alias "chat" "$COMMANDS_DIR/chat.out"
+add_alias "ova" "$COMMANDS_DIR/OVA.out" 
 
 echo "Aliases checked and updated in $ALIAS_FILE. Execute 'source $BASHRC_FILE' to activate them now."
 echo "¡Configuración completada exitosamente! Los comandos 'amfq' y 'chat' están disponibles en la terminal."
