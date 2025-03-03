@@ -1,8 +1,7 @@
 #!/bin/bash
 # Uso: ./setup.sh /path/to/root [--recompile]
 # Ejemplo: ./setup.sh "$(pwd)" --recompile
-# use this comand ./setup.sh "$(pwd)" -r && source "$(pwd)/commands/.bashrc"
-
+# use this command ./setup.sh "$(pwd)" -r && source "$(pwd)/commands/.bashrc"
 
 # Function to handle errors
 handle_error() {
@@ -10,11 +9,8 @@ handle_error() {
     exit 1
 }
 
-# Opcional: activar trampa para errores inesperados (no aborta inmediatamente, pero informa)
 trap 'echo "Error on line $LINENO"' ERR
 
-
-# Verificar que se haya proporcionado el directorio raíz
 # Verify provided arguments
 if [ -z "$1" ]; then
     echo "Error: No se proporcionó directorio raíz."
@@ -25,25 +21,39 @@ fi
 ROOT_DIR="$1"
 RECOMPILE=false  # Default: No recompilation
 
-# Handle --recompile flag
 if [ "$2" == "--recompile" ] || [ "$2" == "-r" ]; then
     RECOMPILE=true
 fi
 
-# Ensure root directory exists
 if [ ! -d "$ROOT_DIR" ]; then
     echo "Error: El directorio raíz proporcionado no existe."
     exit 1
 fi
 
-# Add binary to PATH
-export PATH="$ROOT_DIR/bin:$PATH"
+# Define bashrc path
+BASHRC_FILE="$ROOT_DIR/commands/.bashrc"
+mkdir -p "$ROOT_DIR/commands"
+touch "$BASHRC_FILE"
 
-# Create logs directory if missing
+# Function to add exports safely
+add_export() {
+    local var="$1"
+    local value="$2"
+    if ! grep -q "^export $var=" "$BASHRC_FILE"; then
+        echo "export $var=\"$value\"" >> "$BASHRC_FILE"
+        echo "Export '$var' added to $BASHRC_FILE."
+    else
+        echo "Export '$var' already exists in $BASHRC_FILE. Skipping."
+    fi
+}
+
+# Add binary to PATH
+add_export "PATH" "$ROOT_DIR/bin:$PATH"
+
+# Create logs directory
 LOG_DIR="$ROOT_DIR/logs"
 mkdir -p "$LOG_DIR"
 rm -rf "$LOG_DIR"/*.log  # Clear logs
-
 
 # Stop Ollama server if running
 if lsof -i :11434 &> /dev/null; then
@@ -52,11 +62,10 @@ if lsof -i :11434 &> /dev/null; then
 fi
 
 # Start Ollama server
+add_export "OLLAMA_LOAD_TIMEOUT" "10m"
 echo "Iniciando servidor de Ollama..."
-export OLLAMA_LOAD_TIMEOUT=10m
 ollama serve >> "$LOG_DIR/ollama_server.log" 2>&1 &
 
-# Wait before pulling the model
 sleep 5
 
 # Pull model
@@ -67,7 +76,6 @@ ollama pull deepseek-coder 2>&1 | tee "$LOG_DIR/pull_log.txt" || handle_error "E
 ollama create fast_response_assistant -f "$ROOT_DIR/utilities/models/fast_response_MODELFILE"
 ollama create chat_response_assistant -f "$ROOT_DIR/utilities/models/chat_response_MODELFILE"
 ollama create chat_response_unrestricted -f "$ROOT_DIR/utilities/models/unrestricted_chat_response_MODELFILE"
-
 
 # Ensure commands directory exists
 COMMANDS_DIR="$ROOT_DIR/commands"
@@ -85,8 +93,6 @@ if [ "$RECOMPILE" = true ]; then
     done
 else
     echo "Recompilación omitida. Se usarán ejecutables existentes si están disponibles."
-
-    # Check if executables exist
     for exe in "amfq.out" "chat.out"; do
         if [ ! -f "$COMMANDS_DIR/$exe" ]; then
             echo "Advertencia: El ejecutable $exe no existe. Puede necesitar recompilar."
@@ -97,15 +103,12 @@ fi
 # Compile C++ files if recompiling
 if [ "$RECOMPILE" = true ]; then
     echo "Compilando los archivos C++..."
-    
-    # Compile `ask_the_model.cpp`
     if g++ -std=c++17 -fsanitize=undefined "$COMMANDS_DIR/ask_the_model.cpp" "$ROOT_DIR/utilities/call_the_model.cpp" -o "$COMMANDS_DIR/amfq.out"; then
         echo "Compilación de ask_the_model.cpp exitosa."
     else
         handle_error "Fallo la compilación de ask_the_model.cpp."
     fi
 
-    # Compile `speak_with_the_model.cpp`
     if g++ -std=c++17 -fsanitize=undefined "$COMMANDS_DIR/speak_with_the_model.cpp" "$ROOT_DIR/utilities/call_the_model.cpp" -o "$COMMANDS_DIR/chat.out" -g; then
         echo "Compilación de speak_with_the_model.cpp exitosa."
     else
@@ -116,29 +119,33 @@ else
 fi
 
 # Add commands to PATH
-export PATH="$COMMANDS_DIR:$PATH"
+add_export "PATH" "$COMMANDS_DIR:$PATH"
 
+# Configure LD_LIBRARY_PATH
+add_export "LD_LIBRARY_PATH" "$ROOT_DIR/utilities/whisper.cpp/build/src:$LD_LIBRARY_PATH"
+echo "Whisper.cpp setup successful!"
 
-#Configure LD_LIBRARY_PATH for whisper.cpp shared library
-echo "Configuring LD_LIBRARY_PATH for whisper.cpp..."
-export LD_LIBRARY_PATH="$ROOT_DIR/utilities/whisper.cpp/build/src:$LD_LIBRARY_PATH"
-
-echo "Whisper.cpp setup succesfull!"
-
-
-# ✅ Make aliases persist by adding them to ~/.bashrc or ~/.bash_aliases
+# Configure aliases
 ALIAS_FILE="$COMMANDS_DIR/.bash_aliases"
 if [ ! -f "$ALIAS_FILE" ]; then
-    ALIAS_FILE="$COMMANDS_DIR/.bashrc"  # Fallback to .bashrc if .bash_aliases does not exist
+    ALIAS_FILE="$BASHRC_FILE"
 fi
 
-echo "alias amfq=\"$COMMANDS_DIR/amfq.out\"" >> "$ALIAS_FILE"
-echo "alias chat=\"$COMMANDS_DIR/chat.out\"" >> "$ALIAS_FILE"
-echo "Aliases guardados en $ALIAS_FILE. Ejecute 'source $ALIAS_FILE' para activarlos ahora."
+add_alias() {
+    local alias_name="$1"
+    local alias_command="$2"
+    if ! grep -q "^alias $alias_name=" "$ALIAS_FILE"; then
+        echo "alias $alias_name=\"$alias_command\"" >> "$ALIAS_FILE"
+        echo "Alias '$alias_name' added to $ALIAS_FILE."
+    else
+        echo "Alias '$alias_name' already exists in $ALIAS_FILE. Skipping."
+    fi
+}
 
-trap - ERR
-# ✅ Automatically reload aliases (optional)
-source "$ALIAS_FILE"
+add_alias "amfq" "$COMMANDS_DIR/amfq.out"
+add_alias "chat" "$COMMANDS_DIR/chat.out"
 
+echo "Aliases checked and updated in $ALIAS_FILE. Execute 'source $BASHRC_FILE' to activate them now."
 echo "¡Configuración completada exitosamente! Los comandos 'amfq' y 'chat' están disponibles en la terminal."
+
 exit 0
