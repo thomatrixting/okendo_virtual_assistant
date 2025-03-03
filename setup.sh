@@ -181,6 +181,8 @@ chmod +x "$OVA_WRAPPER"
 
 add_alias "ova" "$COMMANDS_DIR/ova.sh"
 
+add_alias "make" "make -f Makefile_OVA"
+
 echo "Aliases checked and updated in $ALIAS_FILE. Execute 'source $BASHRC_FILE' to activate them now."
 echo "¡Configuración completada exitosamente! Los comandos 'amfq', 'chat' y 'ova' están disponibles en la terminal."
 
