@@ -61,3 +61,8 @@ if [ $? -ne 0 ]; then
     echo "Error detectado: La aplicación Ollama no está corriendo. Verifica su estado y vuelve a ejecutar la configuración."
     return 1
 fi
+
+# Generate models
+ollama create fast_response_assistant -f "$ROOT_DIR/utilities/models/fast_response_MODELFILE"
+ollama create chat_response_assistant -f "$ROOT_DIR/utilities/models/chat_response_MODELFILE"
+ollama create chat_response_unrestricted -f "$ROOT_DIR/utilities/models/unrestricted_chat_response_MODELFILE"
