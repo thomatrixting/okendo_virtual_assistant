@@ -166,9 +166,22 @@ add_alias() {
 
 add_alias "amfq" "$COMMANDS_DIR/amfq.out"
 add_alias "chat" "$COMMANDS_DIR/chat.out"
-add_alias "ova" "$COMMANDS_DIR/OVA.out" 
+
+OVA_WRAPPER="$COMMANDS_DIR/ova.sh"
+
+# Create the wrapper script
+cat > "$OVA_WRAPPER" <<EOL
+#!/bin/bash
+cd "$COMMANDS_DIR" || exit 1
+./OVA.out "\$@"
+EOL
+
+# Make the script executable
+chmod +x "$OVA_WRAPPER"
+
+add_alias "ova" "$COMMANDS_DIR/ova.sh"
 
 echo "Aliases checked and updated in $ALIAS_FILE. Execute 'source $BASHRC_FILE' to activate them now."
-echo "¡Configuración completada exitosamente! Los comandos 'amfq' y 'chat' están disponibles en la terminal."
+echo "¡Configuración completada exitosamente! Los comandos 'amfq', 'chat' y 'ova' están disponibles en la terminal."
 
 exit 0

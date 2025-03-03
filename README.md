@@ -54,7 +54,7 @@ After restarting your terminal, you need to run `setup.sh` every time you log in
 
 ```bash
 chmod +x setup.sh
-./setup.sh [project root directory]  # Run this from the root directory of the project or specify the full path, e.g., /home/thomas/Desktop/okendo_virtual_assistant
+./setup.sh [project root directory] -r # Run this from the root directory of the project or specify the full path, e.g., /home/thomas/Desktop/okendo_virtual_assistant and the tag r to compile
 source [project root directory]/commands/.bashrc  # Enable the commands
 ```
 
@@ -69,7 +69,7 @@ if you are on the root of the project you can run also
    chmod +x install.sh
    ./install.sh
    chmod +x setup.sh
-   ./setup.sh $(pwd)
+   ./setup.sh $(pwd) -r
    $(pwd)"/commands/.bashrc"
 
 ```
