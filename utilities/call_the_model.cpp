@@ -96,7 +96,7 @@ void verificar_ollama(const std::string& modelo) {
         
         std::string comand_dir = get_commands_directory();
         // Intentar ejecutar el script setup.sh
-        std::string set_up_loc = comand_dir + "../setup.sh";
+        std::string set_up_loc = comand_dir + "/../setup.sh" + " " + comand_dir + "/../";
         int resultado = system( set_up_loc.c_str() );
         if (resultado == 0) {
             std::cout << "Script 'setup.sh' ejecutado exitosamente.\n";
