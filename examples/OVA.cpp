@@ -197,14 +197,83 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput, b
             std::getline(std::cin, input);
         }
 
-        if (input == "you: exit") { 
-        system("pkill aplay"); 
-        break;
+        if (input.find("exit") != std::string::npos) { 
+            system("pkill aplay");
+            break;
         }
 
         std::string response = getResponse(input, mode, detail_response);
-        if (useVoiceOutput) std::thread(speak, response).detach();
+
+        // Handle voice output correctly
+        if (useVoiceOutput) {
+            if (mode == "amfq") {
+                // If in AMFQ mode, wait for speak to finish
+                std::thread speechThread(speak, response);
+                speechThread.join();
+            } else {
+                // If in chat mode, run speak in the background
+                std::thread(speak, response).detach();
+            }
+        }
 
         if (mode == "amfq") break;
     }
+
+    system("pkill aplay"); // Ensure aplay is stopped at the very end
 }
+
+/*
+void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
+    Transcriber transcriber("../utilities/whisper.cpp/models/ggml-base.bin", "audio.wav");
+    std::cout << "Entering " << (mode == "chat" ? "Chat" : "AMFQ") << " Mode. Say or type 'exit' to quit." << std::endl;
+
+    std::string input;
+    while (true) {
+        std::cout << "You: ";
+        
+        if (useVoiceInput) {
+            transcriber.start_microphone();
+            system("pkill aplay");
+            transcriber.stop_microphone();
+            input = transcriber.transcribe_audio();
+            
+            if (input.empty()) {
+                std::cerr << "Error: Voice input failed." << std::endl;
+                continue;
+            }
+
+            // Trim spaces, newlines, '.', and '!' from the input
+            input.erase(0, input.find_first_not_of(" \t\r\n.!")); // Trim left
+            input.erase(input.find_last_not_of(" \t\r\n.!") + 1); // Trim right
+            std::transform(input.begin(), input.end(), input.begin(), ::tolower);
+            
+            std::cout << input << std::endl;
+        } else {
+            std::getline(std::cin, input);
+        }
+
+        if (input.find("exit") != std::string::npos) { 
+            system("pkill aplay");
+            break;
+        }
+
+        std::string response = getResponse(input, mode, detail_response);
+
+        // Handle voice output correctly
+        if (useVoiceOutput) {
+            if (mode == "amfq") {
+                // If in AMFQ mode, wait for speak to finish
+                std::thread speechThread(speak, response);
+                speechThread.join();
+            } else {
+                // If in chat mode, run speak in the background
+                std::thread(speak, response).detach();
+            }
+        }
+
+        if (mode == "amfq") break;
+    }
+
+    system("pkill aplay"); // Ensure aplay is stopped at the very end
+}
+*/
