@@ -16,8 +16,6 @@ LIBS = -L$(BUILD_DIR) -lwhisper
 SRCS = OVA.cpp \
        $(UTILS)/call_the_model.cpp \
        $(UTILS)/transcriber.cpp \
-       $(UTILS)/amfq.cpp \
-       $(UTILS)/chat.cpp \
        $(UTILS)/voicer.cpp
 
 # Output Executable
