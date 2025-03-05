@@ -3,14 +3,6 @@
 # Ejemplo: ./setup.sh "$(pwd)" --recompile
 # use this command ./setup.sh "$(pwd)" -r && source "$(pwd)/commands/.bashrc"
 
-# Function to handle errors
-handle_error() {
-    echo "Error: $1"
-    exit 1
-}
-
-trap 'echo "Error on line $LINENO"' ERR
-
 # Verify provided arguments
 if [ -z "$1" ]; then
     echo "Error: No se proporcionó directorio raíz."
@@ -30,6 +22,50 @@ if [ ! -d "$ROOT_DIR" ]; then
     exit 1
 fi
 
+# Create commands and logs directories 
+COMMANDS_DIR="$ROOT_DIR/commands"
+mkdir -p "$COMMANDS_DIR"
+
+LOG_DIR="$ROOT_DIR/logs"
+mkdir -p "$LOG_DIR"
+
+# Define setup log file and clear previous logs
+LOG_FILE="$LOG_DIR/setup.log"
+rm -rf "$LOG_DIR"/*.log
+
+# Redirect all output to log file AND terminal (testing)
+#exec > >(tee -a "$LOG_FILE") 2>&1
+ exec > "$LOG_FILE" 2>&1 #Uncomment this line to send all to log file only
+
+# Function to handle errors with support for custom messages
+handle_error() {
+    local line_number="$1"
+    shift
+    local custom_message="$*"
+    local failed_command
+
+    # Detect shell and get the last executed command
+    if [ -n "$BASH_VERSION" ]; then
+        failed_command="$BASH_COMMAND"
+    elif [ -n "$ZSH_VERSION" ]; then
+        failed_command="$(fc -ln -1)"
+    else
+        failed_command="Unknown"
+    fi
+    
+    if [ -n "$custom_message" ]; then
+        echo "⚠️  Error en la línea $line_number: $custom_message" >&2
+    else
+        echo "⚠️  Error en la línea $line_number al ejecutar: '$failed_command'" >&2
+    fi
+
+    echo "Revisa el archivo log: $LOG_FILE" >&2
+    exit 1
+}
+
+# Trap for automatic error handling (passes the line number)
+trap 'handle_error $LINENO' ERR
+
 UTILITIES_DIR="$ROOT_DIR/utilities"
 LOCAL_INSTALL_DIR="$ROOT_DIR/.local"
 BIN_DIR="$LOCAL_INSTALL_DIR/bin"
@@ -37,9 +73,8 @@ LIB_DIR="$LOCAL_INSTALL_DIR/lib"
 CUSTOM_BASHRC="$COMMANDS_DIR/.bashrc"
 OLLAMA_BIN="$BIN_DIR/ollama"
 
-# Define bashrc path
+# Define bashrc path and ensure it exists (COMMANDS_DIR already exists)
 BASHRC_FILE="$ROOT_DIR/commands/.bashrc"
-mkdir -p "$ROOT_DIR/commands"
 touch "$BASHRC_FILE"
 
 # Function to add exports safely and apply them immediately
@@ -60,14 +95,8 @@ add_export() {
     echo "Export '$var' applied to current session."
 }
 
-
 # Add binary to PATH
-add_export "PATH" "$BIN_DIR:$PATH"
-
-# Create logs directory
-LOG_DIR="$ROOT_DIR/logs"
-mkdir -p "$LOG_DIR"
-rm -rf "$LOG_DIR"/*.log  # Clear logs
+add_export "PATH" "$BIN_DIR:$COMMANDS_DIR:$PATH"
 
 # Stop Ollama server if running
 if lsof -i :11434 &> /dev/null; then
@@ -90,9 +119,6 @@ ollama pull deepseek-coder 2>&1 | tee "$LOG_DIR/pull_log.txt" || handle_error "E
 ollama create fast_response_assistant -f "$ROOT_DIR/utilities/models/fast_response_MODELFILE"
 ollama create chat_response_assistant -f "$ROOT_DIR/utilities/models/chat_response_MODELFILE"
 ollama create chat_response_unrestricted -f "$ROOT_DIR/utilities/models/unrestricted_chat_response_MODELFILE"
-# Ensure commands directory exists
-COMMANDS_DIR="$ROOT_DIR/commands"
-mkdir -p "$COMMANDS_DIR"
 
 # Copy example files (if recompiling)
 if [ "$RECOMPILE" = true ]; then
@@ -140,9 +166,6 @@ else
     echo "Recompilación omitida. Usando ejecutables existentes."
 fi
 
-# Add commands to PATH
-add_export "PATH" "$COMMANDS_DIR:$PATH"
-
 # Configure LD_LIBRARY_PATH
 add_export "LD_LIBRARY_PATH" "$ROOT_DIR/utilities/whisper.cpp/build/src:$LD_LIBRARY_PATH"
 echo "Whisper.cpp setup successful!"
@@ -166,6 +189,7 @@ add_alias() {
 
 add_alias "amfq" "$COMMANDS_DIR/amfq.out"
 add_alias "chat" "$COMMANDS_DIR/chat.out"
+add_alias "make" "make -f Makefile_OVA"
 
 OVA_WRAPPER="$COMMANDS_DIR/ova.sh"
 
@@ -178,10 +202,9 @@ EOL
 
 # Make the script executable
 chmod +x "$OVA_WRAPPER"
-
 add_alias "ova" "$COMMANDS_DIR/ova.sh"
 
 echo "Aliases checked and updated in $ALIAS_FILE. Execute 'source $BASHRC_FILE' to activate them now."
-echo "¡Configuración completada exitosamente! Los comandos 'amfq', 'chat' y 'ova' están disponibles en la terminal."
+echo "¡Configuración completada exitosamente! Los comandos 'amfq', 'chat' y 'ova' están disponibles en la terminal." > /dev/tty
 
 exit 0
