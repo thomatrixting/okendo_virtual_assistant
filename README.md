@@ -10,9 +10,9 @@ OVA aims to provide an interactive assistant experience, capable of interpreting
 - **Offline functionality**
 - **Voice and text-based interactions**
 
-## Quik example
+## Quick example
 
-One of the main functionalities of OVA is that i can answers question directly from terminal, and it will answere in less that 15 seconds, to use it is only needed to type 'amfq' or 'ova amfq':
+One of the main functionalities of OVA is that it can answer a question directly from terminal in less that 15 seconds. To use it, you only needed to type 'amfq' or 'ova amfq':
 
 > to remeber amfq stads for: Answer My Fun Question 
 
@@ -145,15 +145,15 @@ To install Python libraries using pip (Python package installer), you can follow
 
 The `ova` command supports additional options:
 
-- `--detail`: use a less restrictive setup of `deepseek-coder` so it will take more time but generate beter responses in return
-- `--speak`: it will use espeak to convert the response into audio and play it
-- `--voice`: it will promot a terminal expecting the ussers to press `r` to record and `s` to stop the recording, which afterward it will convert the audio into a promt that will be answer by the model
+- `--detail`: use a less restrictive setup of `deepseek-coder` so it will take more time but generate beter responses in return.
+- `--speak`: it will use espeak to convert the response into audio and play it.
+- `--voice`: it will promot a terminal expecting the ussers to press `r` to record and `s` to stop the recording, which afterward it will convert the audio into a promt that will be answer by the model.
  
 
 #### Example Commands:
 
 - **modes**
-  with the mode `amfq` and `chat` it will behave as explain in more depth in the next seccion
+  with the mode `amfq` and `chat` it will behave as explain in more depth in the next seccion.
 
 - **Basic Response:**
   ```bash
