@@ -275,5 +275,6 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
     }
 
     system("pkill aplay"); // Ensure aplay is stopped at the very end
-}
+
 */
+
