@@ -12,32 +12,38 @@ OVA aims to provide an interactive assistant experience, capable of interpreting
 
 ## Quick example
 
-One of the main functionalities of OVA is that it can answer a question directly from terminal in less that 15 seconds. To use it, you only needed to type 'amfq' or 'ova amfq':
-
-> to remeber amfq stads for: Answer My Fun Question 
+>here are some fast examples to test when your code is ready 
 
 ```bash
-amfq "What command can I use to search for the pattern 'model_file' in .txt files?"
+ova amfq --voice --speak
 ```
+> follow the instruccions speak and ask somthing like how to create a file on linux and wait for the response to apear an be read
 
 **Example Output:**
 ```
-Ollama is already running.
-================ Assistant Output ================
+Entering AMFQ Mode. Say or type 'exit' to quit.
+You: 🎤 Press 'R' to talk.
+🎙️ Recording...
+Press'S' to stop.
+🛑 Stopping...
+you: how to create a file on linux
+================ Asistant out ================
 
-You can use the `grep` command for this purpose, which stands for "global regular expression print." It is used in Unix/Linux systems to search for text patterns in files. By default, it searches through standard input unless specified otherwise.
+You can use several methods (like touch command or Python script) to do this. Here's an example using bash shell and commands line in Linux terminal as follows, assuming that you want to touch the "test_file". 
 
-Here are some examples:
-- To search for 'model_file' within all `.txt` files in your current directory and subdirectories:
-  find . -name "*.txt" | xargs grep 'model_file'
-  This command finds and prints every line in each `.txt` file containing the word 'model_file'.
+Method one is creating new empty file with name 'filename':  
+`bash   
+$ touch filename     #This will create a text document named test on your current directory. If it doesn't exist already then created otherwise opened in an editor like vim, nano etc.. (default).     
+#By default if no extension given but file to be made exists so this command is creating one without any issues as well   
+` 
+Method two uses the touch utility:  
+To use a shell script we'll make need.sh and put following line in it - touch new_file`, then run that with :  `chmod +x need.sh && ./need.sh .     (For method one)    If you want to create multiple files at once or using bash loop for creating many file this approach is good but not recommended due syntax and efficiency can be improved in python scripting language like:
+`python  #Using Python  
+import os     
+for i in range(5):     //To make five new_files, change the value as per requirement.   
+open('new_file'+str(i), 'a')`         (Opens a file for appending if it exists else creates one)  This works like method one but more efficient with python  
+`     
 
-- To search within a specific `.txt` file:
-  grep 'model_file' model.txt
-  If your file is named differently, replace `model.txt` accordingly.
-
-- To perform a case-insensitive search:
-  grep -i 'your pattern here' filename.txt
 ==========================================================
 ```
 ## Installation
