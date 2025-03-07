@@ -1,16 +1,19 @@
-#include "../utilities/voicer.hpp"
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <cstdio>
 #include <vector>
-#include <cstdio> 
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include <filesystem>
+#include "../utilities/voicer.hpp"
 
-Voicer::Voicer(std::string archivo, std::string audio)
-    : archivoTexto(std::move(archivo)), archivoAudio(std::move(audio)) {}
+Voicer::Voicer(std::string file, std::string audio) : textFile(std::move(file)), audioFile(std::move(audio)) {}
+
+// Functions
+
+
 
 // Function to capture text based on a mapping maded in the prompt.
-void Voicer::capturarTexto() {
+void Voicer::captureText() {
     std::ostringstream output;
     std::string line;
     CaptureState state = WAITING;
@@ -44,13 +47,13 @@ void Voicer::capturarTexto() {
         }
     }
 
-    std::string textoCapturado = output.str();  // Capture the output text
-    generarAudio(textoCapturado);
+    std::string capturedText = output.str();  // Capture the output text
+    generateAudio(capturedText);
 
 }
 
 //Logging error and success messages from other functions
-void voicerlog(const std::string& message) {
+void Voicer::voicerlog(const std::string& message) {
     
     std::string logDirectory = "../logs/"; 
     std::filesystem::create_directories(logDirectory);
@@ -61,13 +64,13 @@ void voicerlog(const std::string& message) {
         logFile << message << std::endl;
         logFile.close();
     } else {
-        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
+        std::cerr << " ❌ Error: Could not open log file in " << logFilePath << std::endl;
     }
 }
 
 //Function that creates a temporary file with the mapped prompt text and generates audio with eSpeak NG.
-void Voicer::generarAudio(const std::string &texto) {
-    if (texto.empty()) {
+void Voicer::generateAudio(const std::string &text) {
+    if (text.empty()) {
         std::string errMsg = "Warning: No text provided for audio generation.";
         voicerlog(errMsg);
         return;
@@ -77,11 +80,11 @@ void Voicer::generarAudio(const std::string &texto) {
     std::string tempFile = "/tmp/voicer_text.txt";
     std::ofstream outFile(tempFile);
     if (!outFile) {
-        std::string errMsg = "❌ Error: Could not create temporary file for text input.";
+        std::string errMsg = " ❌ Error: Could not create temporary file for text input.";
         voicerlog(errMsg);
         return;
     }
-    outFile << texto;
+    outFile << text;
     outFile.close();
 
     // Check if espeak is available
@@ -95,12 +98,12 @@ void Voicer::generarAudio(const std::string &texto) {
     }
 
     // Construct the espeak command using the temp file
-    std::ostringstream comando;
-    comando << selectedEngine << " -w " << archivoAudio
+    std::ostringstream command;
+    command << selectedEngine << " -w " << audioFile
             << " --stdout -f " << tempFile << " | aplay > /dev/null 2>&1";
 
     // Execute the command safely
-    FILE* pipe = popen(comando.str().c_str(), "r");
+    FILE* pipe = popen(command.str().c_str(), "r");
     if (!pipe) {
         std::string errMsg = "❌ Error: Failed to execute audio command.";
         voicerlog(errMsg);

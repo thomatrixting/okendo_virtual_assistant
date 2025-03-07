@@ -1,36 +1,38 @@
 #ifndef CALL_THE_MODEL_HPP
 #define CALL_THE_MODEL_HPP
 
-#include <iostream>
+#include <string>
 #include <vector>
 #include "json.hpp"
+#include <iostream>
 #include "ollama.hpp"
-#include <string>
 
-// Alias para JSON
+// Abreviation for the namespace JSON
 using json = nlohmann::json;
 
-// Estructura para mensajes
-struct Mensaje {
+// Structure for storing history messages
+struct message {
     std::string role;
     std::string content;
 };
 
-// Declaración de funciones
-void verificar_ollama(const std::string& modelo);
-void obtener_respuesta(
-    ollama::messages& historial, 
-    const std::string& modelo, 
-    const ollama::options& opciones,
+// Functions
+void restart_server();
+std::string get_commands_directory();
+void modelog(const std::string& message);
+void verify_ollama(const std::string& model);
+void print_formatted_output(const std::string& input);
+void truncate_history(ollama::messages& history, int limit);
+void initialize_options(const std::string& route_json, ollama::options& options);
+void initialize_history(const std::string& route_json, ollama::messages& history);
+void save_in_log(const std::string& user, const std::string& message, const std::string& response, bool esError);
+void get_response(
+    ollama::messages& history, 
+    const std::string& model, 
+    const ollama::options& options,
     const std::string& initial_instruction,
     const std::string& prompt,
-    const std::string speaking_role
+    const std::string& speaking_role
 );
-void inicializar_historial(const std::string& ruta_json, ollama::messages& historial);
-void inicializar_opciones(const std::string& ruta_json, ollama::options& opciones);
-void print_formatted_output(const std::string& input);
-void format_response_for_audio(const std::string& input, std::string &output);  
-void guardar_en_log(const std::string& usuario, const std::string& mensaje, const std::string& respuesta, bool esError);
-std::string get_commands_directory();
 
 #endif // CALL_THE_MODEL_HPP

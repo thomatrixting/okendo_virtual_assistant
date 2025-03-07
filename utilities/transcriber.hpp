@@ -1,24 +1,24 @@
 #ifndef TRANSCRIBER_HPP
 #define TRANSCRIBER_HPP
 
-#include <vector>
-#include <string>
-#include "../utilities/whisper.cpp/include/whisper.h"
-#include <termios.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <iostream>
 #include <chrono>
+#include <string>
 #include <thread>
+#include <vector>
+#include <fcntl.h>
 #include <fstream>
+#include <iostream>
+#include <unistd.h>
+#include <termios.h>
+#include "../utilities/whisper.cpp/include/whisper.h"
 
 // Macros para hacer la API de Whisper más intuitiva.
 #define ModeloWhisper struct whisper_context
-#define ParametrosWhisper struct whisper_context_params
+#define ParametersWhisper struct whisper_context_params
 #define WhisperConfig whisper_full_params
-#define whisper_crear_parametros whisper_full_default_params
-#define whisper_num_segmentos whisper_full_n_segments
-#define whisper_obtener_texto_segmento whisper_full_get_segment_text
+#define whisper_create_parameters whisper_full_default_params
+#define whisper_num_segments whisper_full_n_segments
+#define whisper_get_text_segment whisper_full_get_segment_text
 
 // Macros para configurar la terminal (para keyboardhit)
 #define DISABLE_CANONICAL_MODE(newt)    (newt.c_lflag &= ~(ICANON | ECHO))
@@ -73,9 +73,11 @@ public:
     void start_microphone();
     void stop_microphone();
     std::string transcribe_audio();
+    void logMsg(const std::string& message);
+    void customWhisperLogCallback(ggml_log_level level, const char * text, void * user_data);
     
 private:
-    // Método para cargar el archivo WAV y convertirlo a un vector de float.
+    // Método para cargar el archivo WAV y convertirlo a un vector de double.
     std::vector<float> load_audio(const std::string &filename);
 };
 

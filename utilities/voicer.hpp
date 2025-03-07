@@ -12,16 +12,17 @@ public:
     enum CaptureState { WAITING, CAPTURING, PAUSED };
 
 private:
-    std::string archivoTexto;
-    std::string archivoAudio;
+    std::string textFile;
+    std::string audioFile;
 
 public:
     // Constructor
-    Voicer(std::string archivo = "transcripcion.txt", std::string audio = "audiogene.wav");
+    Voicer(std::string archivo = "transcription.txt", std::string audio = "audiogene.wav");
 
     // Métodos
-    void capturarTexto();
-    void generarAudio(const std::string &texto);
+    void captureText();
+    void voicerlog(const std::string& message);
+    void generateAudio(const std::string &texto);
 };
 
 #endif // VOICER_HPP

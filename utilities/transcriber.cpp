@@ -1,23 +1,22 @@
-#include "../utilities/transcriber.hpp"
-#include <iostream>
-#include <thread>
 #include <chrono>
-#include <cstdlib>
-#include <termios.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <vector>
-#include <fstream>
-#include <filesystem>
 #include <poll.h>
+#include <thread>
+#include <vector>
+#include <cstdlib>
+#include <fcntl.h>
+#include <fstream>
 #include <sstream>
-#include "transcriber.hpp"
+#include <iostream>
+#include <unistd.h>
+#include <termios.h>
+#include <filesystem>
+#include "../utilities/transcriber.hpp"
 
 // Global log file stream
 std::ofstream whisperLogFile("../logs/whisper.log", std::ios::app);
 
 // Custom logging callback function for whisper
-void customWhisperLogCallback(ggml_log_level level, const char * text, void * user_data) {
+void Transcriber::customWhisperLogCallback(ggml_log_level level, const char * text, void * user_data) {
     if (whisperLogFile.is_open()) {
         whisperLogFile << text;
         whisperLogFile.flush();
@@ -41,30 +40,29 @@ Transcriber::Transcriber(const std::string &modelPath, const std::string &audioP
     std::streambuf *cerrBuffer = std::cerr.rdbuf();
     std::cerr.rdbuf(logFile.rdbuf());  
 
-    whisper_log_set(customWhisperLogCallback, nullptr);
-    ParametrosWhisper wparams = whisper_context_default_params();
+    ParametersWhisper wparams = whisper_context_default_params();
     ctx = whisper_init_from_file_with_params(modelPath.c_str(), wparams);
 
     std::cout.rdbuf(coutBuffer);
     std::cerr.rdbuf(cerrBuffer);  
 
     if (!ctx) {
-        std::cerr << "❌ Error: No se pudo cargar el modelo Whisper." << std::endl;
+        std::cerr << " ❌ Error: Could not load Whisper model." << std::endl;
         exit(1);
     }
 
-    audioFile = audioPath;     
+    audioFile = audioPath;
     recordCommand = "arecord -f S16_LE -r 16000 -c 1 audio.wav > /dev/null 2>&1 & echo $! > /tmp/arecord_pid";
     stopCommand = "if [ -f /tmp/arecord_pid ]; then kill $(cat /tmp/arecord_pid) && rm -f /tmp/arecord_pid; fi";
 }
 
-// Destructor
+// Destroyer
 Transcriber::~Transcriber() {
     whisper_free(ctx);
 }
 
-//Logging error and success messages from other functions
-void logMsg(const std::string& message) {
+// Logging error and success messages from other functions
+void Transcriber::logMsg(const std::string& message) {
     
     std::string logDirectory = "../logs/"; 
     std::filesystem::create_directories(logDirectory);
@@ -75,11 +73,11 @@ void logMsg(const std::string& message) {
         logFile << message << std::endl;
         logFile.close();
     } else {
-        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
+        std::cerr << " ❌ Error: Could not open log file in " << logFilePath << std::endl;
     }
 }
 
-// Función para obtener la configuración de la terminal
+// Function to get the terminal configuration
 void set_terminal_attributes(struct termios& oldt, struct termios& newt) {
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
@@ -87,17 +85,17 @@ void set_terminal_attributes(struct termios& oldt, struct termios& newt) {
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 }
 
-// Función para restaurar la configuración original de la terminal
+// Function to restore the original configuration of the terminal
 void restore_terminal_settings(struct termios& oldt) {
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 }
 
-// Función para obtener el estado de una tecla sin bloquear
+// Function to get the state of an key without blocking
 int get_key() {
     return getchar();
 }
 
-// Función para gestionar la entrada de teclado sin bloqueo
+// Function to handle keyboard input without blocking
 bool keyboardhit() {
     struct termios oldt, newt;
     int oldf;
@@ -123,23 +121,23 @@ void Transcriber::start_microphone() {
     // Use the audioFile member to determine the file path.
     if (std::filesystem::exists(audioFile)) {
         std::filesystem::remove(audioFile);
-        std::string errMsg = "❌ Archivo de audio anterior eliminado: " + audioFile;
-        //std::cerr << errMsg << std::endl;
+        std::string errMsg = " ❌ Previous audio file removed: " + audioFile;
+        // std::cerr << errMsg << std::endl;
         logMsg(errMsg);
     }
     
-    std::cout << "🎤 Press 'R' to talk." << std::endl;
+    std::cout << " 🎤 Press 'R' to talk." << std::endl;
     auto start_time = std::chrono::steady_clock::now();
     while (true) {
         if (keyboardhit()) {
             char key = getchar();
             printf("\b \b"); // Remove character from terminal
             if (key == 'r' || key == 'R') {
-                std::cout << "🎙️ Recording..." << std::endl;
+                std::cout << " 🎙️ Recording..." << std::endl;
                 // Execute the recording command.
                 if (system(recordCommand) != 0) {
-                    std::string errMsg = "❌ Error al iniciar la grabación";
-                    //perror(errMsg.c_str());
+                    std::string errMsg = " ❌ Error starting recording";
+                    // perror(errMsg.c_str());
                     logMsg(errMsg);
                 }
                 
@@ -153,14 +151,14 @@ void Transcriber::start_microphone() {
                 }
                 
                 if (!std::filesystem::exists(audioFile) || std::filesystem::file_size(audioFile) == 0) {
-                    std::string errMsg = "❌ Error: No se pudo iniciar la grabación. Archivo: " + audioFile;
-                    //std::cerr << errMsg << std::endl;
+                    std::string errMsg = "❌ Error: Failed to start recording. File: " + audioFile;
+                    // std::cerr << errMsg << std::endl;
                     logMsg(errMsg);
                     return;
                 } else {
-                    std::string msg = "✅ Archivo de audio creado: " + audioFile 
-                    + " (Tamaño: " + std::to_string(std::filesystem::file_size(audioFile)) + " bytes)";
-                    //std::cout << msg << std::endl;
+                    std::string msg = "✅ Audio file created: " + audioFile 
+                    + " (Size: " + std::to_string(std::filesystem::file_size(audioFile)) + " bytes)";
+                    // std::cout << msg << std::endl;
                     logMsg(msg);
                 }
                 break;
@@ -173,7 +171,7 @@ void Transcriber::start_microphone() {
 
 // Stop microphone recording
 void Transcriber::stop_microphone() {
-    std::cout << "Press'S' to stop." << std::endl;
+    std::cout << "Press 'S' to stop." << std::endl;
     auto start_time = std::chrono::steady_clock::now();
     while (true) {
         if (keyboardhit()) {
@@ -183,23 +181,23 @@ void Transcriber::stop_microphone() {
                 std::cout << "🛑 Stopping..." << std::endl;
                 if (system(stopCommand) != 0) {
                     if (errno != 0) {
-                    std::string errMsg = "❌ Error al detener la grabación";
-                        //perror(errMsg.c_str());
+                    std::string errMsg = "❌ Error stopping recording";
+                        // perror(errMsg.c_str());
                         logMsg(errMsg);
                         }
                     }
                 }
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 
-                //Verify the file exists after stopping the recording.
+                // Verify the file exists after stopping the recording.
                 if (std::filesystem::exists(audioFile)) {
-                    std::string msg = "✅ Archivo de audio encontrado tras detener la grabación: " + audioFile +
-                                      " (Tamaño: " + std::to_string(std::filesystem::file_size(audioFile)) + " bytes)";
-                    //std::cout << msg << std::endl;
+                    std::string msg = "✅ Audio file found after stopping recording: " + audioFile +
+                                      " (Size: " + std::to_string(std::filesystem::file_size(audioFile)) + " bytes)";
+                    // std::cout << msg << std::endl;
                     logMsg(msg);
                 } else {
-                    std::string errMsg = "❌ Error: El archivo de audio no se encontró tras detener la grabación.";
-                    //std::cerr << errMsg << std::endl;
+                    std::string errMsg = "❌ Error: Audio file not found after stopping recording.";
+                    // std::cerr << errMsg << std::endl;
                     logMsg(errMsg);
                 }
                 break;
@@ -209,12 +207,12 @@ void Transcriber::stop_microphone() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-// Load WAV file and convert it to a normalized float vector
+// Load WAV file and convert it to a normalized double vector
 std::vector<float> Transcriber::load_audio(const std::string &filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
-        std::string errMsg = "❌ Archivo de audio no existe: " + filename;
-        //std::cerr << errMsg << std::endl;
+        std::string errMsg = " ❌ Audio file does not exist: " + filename;
+        // std::cerr << errMsg << std::endl;
         logMsg(errMsg);
         return {};
     }
@@ -223,8 +221,8 @@ std::vector<float> Transcriber::load_audio(const std::string &filename) {
     char header[44];
     file.read(header, 44);
     if (file.gcount() < 44) {
-        std::string errMsg = "❌ Error: Encabezado WAV insuficiente.";
-        //std::cerr << errMsg << std::endl;
+        std::string errMsg = " ❌ Error: Insufficient WAV header.";
+        // std::cerr << errMsg << std::endl;
         logMsg(errMsg);
         return {};
     }
@@ -234,14 +232,14 @@ std::vector<float> Transcriber::load_audio(const std::string &filename) {
     std::streampos fileSize = file.tellg();
     std::streamoff dataSize = fileSize - static_cast<std::streamoff>(44); // remaining bytes after header
     if (dataSize <= 0) {
-        std::string errMsg = "❌ No hay datos de audio.";
-        //std::cerr << errMsg << std::endl;
+        std::string errMsg = " ❌ No audio data.";
+        // std::cerr << errMsg << std::endl;
         logMsg(errMsg);
         return {};
     }
     if (dataSize % sizeof(int16_t) != 0) {
-        std::string errMsg = "❌ Tamaño de datos de audio no alineado a muestras de 16 bits.";
-        //std::cerr << errMsg << std::endl;
+        std::string errMsg = " ❌ Audio data size not aligned to 16-bit samples.";
+        // std::cerr << errMsg << std::endl;
         logMsg(errMsg);
         return {};
     }
@@ -252,14 +250,14 @@ std::vector<float> Transcriber::load_audio(const std::string &filename) {
     std::vector<int16_t> samples(numSamples);
     file.read(reinterpret_cast<char*>(samples.data()), dataSize);
     if (static_cast<size_t>(file.gcount()) < numSamples * sizeof(int16_t)) {
-        std::string errMsg = "❌ Error al leer las muestras de audio.";
-        //std::cerr << errMsg << std::endl;
+        std::string errMsg = " ❌ Error reading audio samples.";
+        // std::cerr << errMsg << std::endl;
         logMsg(errMsg);
         return {};
     }
     file.close();
 
-    // Normalize samples to floats in range [-1.0, 1.0)
+    // Normalize samples to doubles in range [-1.0, 1.0)
     std::vector<float> audioData(samples.size());
     for (size_t i = 0; i < samples.size(); ++i) {
         audioData[i] = samples[i] / 32768.0f;
@@ -273,27 +271,27 @@ std::vector<float> Transcriber::load_audio(const std::string &filename) {
 std::string Transcriber::transcribe_audio() {
     std::vector<float> audioData = load_audio(audioFile);
     if (audioData.empty()) {
-        std::string errMsg = "❌ No se pudo cargar el audio.";
-        //std::cerr << errMsg << std::endl;
+        std::string errMsg = " ❌ Audio could not be loaded.";
+        // std::cerr << errMsg << std::endl;
         logMsg(errMsg);
         return "";
     }
 
-    WhisperConfig params = whisper_crear_parametros(WHISPER_SAMPLING_GREEDY);
+    WhisperConfig params = whisper_create_parameters(WHISPER_SAMPLING_GREEDY);
     params.language = "en";
     params.print_progress = false;
 
     if (whisper_full(ctx, params, audioData.data(), audioData.size()) != 0) {
-        std::string errMsg = "❌ Error al transcribir el audio.";
-        //std::cerr << errMsg << std::endl;
+        std::string errMsg = " ❌ Error transcribing audio.";
+        // std::cerr << errMsg << std::endl;
         logMsg(errMsg);
         return "";
     }
 
-    int num_segments = whisper_num_segmentos(ctx);
-    std::string transcript = "You:";
+    int num_segments = whisper_num_segments(ctx);
+    std::string transcript = "You: ";
     for (int i = 0; i < num_segments; ++i) {
-        transcript += whisper_obtener_texto_segmento(ctx, i);
+        transcript += whisper_get_text_segment(ctx, i);
         transcript += " ";
     }
 
