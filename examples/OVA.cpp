@@ -1,18 +1,18 @@
 //g++ -std=c++17 -fsanitize=undefined OVA.cpp -I ../utilities/whisper.cpp/include -I ../utilities/whisper.cpp/ggml/include -L ../utilities/whisper.cpp/build/src -lwhisper ../utilities/call_the_model.cpp ../utilities/transcriber.cpp ../utilities/voicer.cpp -o OVA.out -g
 
-#include <iostream>
+#include <cctype>
 #include <string>
 #include <thread>
-#include <algorithm>
-#include "../utilities/call_the_model.hpp"
-#include "../utilities/transcriber.hpp"
-#include "../utilities/voicer.hpp"
 #include <fstream>
 #include <sstream>
+#include <iostream>
+#include <algorithm>
 #include <unordered_map>
-#include <cctype>
+#include "../utilities/voicer.hpp"
+#include "../utilities/transcriber.hpp"
+#include "../utilities/call_the_model.hpp"
 
-// Funciones auxiliares
+// Functions
 void speak(const std::string& text);
 std::string getResponse(const std::string& query,const std::string& mode,bool &detail_response);
 void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput, bool detail_response);
@@ -47,7 +47,6 @@ int main(int argc, char* argv[]) {
 }
 
 void OVAlog(const std::string& message) {
-    
     std::string logDirectory = "../logs/"; 
     std::filesystem::create_directories(logDirectory);
     std::string logFilePath = logDirectory + "OVA.log";
@@ -57,7 +56,7 @@ void OVAlog(const std::string& message) {
         logFile << message << std::endl;
         logFile.close();
     } else {
-        std::cerr << "❌ Error: No se pudo abrir el archivo de registro en " << logFilePath << std::endl;
+        std::cerr << " ❌ Error: Failed to open log file in " << logFilePath << std::endl;
     }
 }
 
@@ -97,14 +96,14 @@ std::unordered_map<std::string, std::string> loadOptions(const std::string& file
 std::string getResponse(const std::string& query,const std::string& mode,bool &detail_response) {
     std::string command_dir = get_commands_directory();
     std::string historial_json = command_dir + "/historial_test.json";
-    std::string opciones_json = command_dir + "/opcions.json";
+    std::string options_json = command_dir + "/options.json";
     
-    auto opciones = loadOptions(opciones_json);
+    auto options = loadOptions(options_json);
     
     // Ensure required keys exist
-    std::vector<std::string> required_keys = {"model", "initial_intrucion"};
+    std::vector<std::string> required_keys = {"model", "initial_instruction"};
     for (const auto& key : required_keys) {
-        if (opciones.find(key) == opciones.end()) {
+        if (options.find(key) == options.end()) {
             std::string errMsg = "Error: Missing required key in options: " + key;
             OVAlog(errMsg);
         }
@@ -117,33 +116,33 @@ std::string getResponse(const std::string& query,const std::string& mode,bool &d
     }
     
     try {
-        std::string model = opciones["model"];
+        std::string model = options["model"];
 
         if (!detail_response){
             if(mode == "amfq"){
-                model = opciones["model_fast_response"];
+                model = options["model_fast_response"];
             } else {
-                model = opciones["model_chat_response"];
+                model = options["model_chat_response"];
 
             }
         } else {
             if(mode == "amfq"){
-                model = opciones["model_chat_response"];
+                model = options["model_chat_response"];
             } else {
-                model = opciones["model_chat_response_unrestricted"];
+                model = options["model_chat_response_unrestricted"];
             }
         }
 
         verificar_ollama(model);
         
-        // Convert unordered_map to ollama::options class
+        // Convert unordered_map to class ollama::options
         ollama::options convertedOptions;
         convertedOptions["model"] = model;
 
         if (detail_response){
-            convertedOptions["initial_intrucion"] = opciones["detail_initial_intrucion"];
+            convertedOptions["initial_intrucion"] = options["detail_initial_intrucion"];
         } else {
-            convertedOptions["initial_intrucion"] = opciones["initial_intrucion"];
+            convertedOptions["initial_intrucion"] = options["initial_intrucion"];
         }
         
         obtener_respuesta(historial, convertedOptions["model"], convertedOptions, convertedOptions["initial_intrucion"], query, "user");
@@ -165,7 +164,7 @@ std::string getResponse(const std::string& query,const std::string& mode,bool &d
 }
 
 void speak(const std::string& text) {
-    Voicer("transcripcion.txt", "audiogene.wav").generarAudio(text);
+    Voicer("transcription.txt", "audiogene.wav").generarAudio(text);
 }
 
 void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput, bool detail_response) {
@@ -197,7 +196,7 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput, b
             std::getline(std::cin, input);
         }
 
-        if (input.find("exit") != std::string::npos) { 
+        if (input.find("bye") != std::string::npos) { 
             system("pkill aplay");
             break;
         }
@@ -221,60 +220,3 @@ void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput, b
 
     system("pkill aplay"); // Ensure aplay is stopped at the very end
 }
-
-/*
-void runMode(const std::string& mode, bool useVoiceInput, bool useVoiceOutput) {
-    Transcriber transcriber("../utilities/whisper.cpp/models/ggml-base.bin", "audio.wav");
-    std::cout << "Entering " << (mode == "chat" ? "Chat" : "AMFQ") << " Mode. Say or type 'exit' to quit." << std::endl;
-
-    std::string input;
-    while (true) {
-        std::cout << "You: ";
-        
-        if (useVoiceInput) {
-            transcriber.start_microphone();
-            system("pkill aplay");
-            transcriber.stop_microphone();
-            input = transcriber.transcribe_audio();
-            
-            if (input.empty()) {
-                std::cerr << "Error: Voice input failed." << std::endl;
-                continue;
-            }
-
-            // Trim spaces, newlines, '.', and '!' from the input
-            input.erase(0, input.find_first_not_of(" \t\r\n.!")); // Trim left
-            input.erase(input.find_last_not_of(" \t\r\n.!") + 1); // Trim right
-            std::transform(input.begin(), input.end(), input.begin(), ::tolower);
-            
-            std::cout << input << std::endl;
-        } else {
-            std::getline(std::cin, input);
-        }
-
-        if (input.find("exit") != std::string::npos) { 
-            system("pkill aplay");
-            break;
-        }
-
-        std::string response = getResponse(input, mode, detail_response);
-
-        // Handle voice output correctly
-        if (useVoiceOutput) {
-            if (mode == "amfq") {
-                // If in AMFQ mode, wait for speak to finish
-                std::thread speechThread(speak, response);
-                speechThread.join();
-            } else {
-                // If in chat mode, run speak in the background
-                std::thread(speak, response).detach();
-            }
-        }
-
-        if (mode == "amfq") break;
-    }
-
-    system("pkill aplay"); // Ensure aplay is stopped at the very end
-
-*/
-

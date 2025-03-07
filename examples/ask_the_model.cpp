@@ -1,8 +1,8 @@
-//copile with g++ -std=c++17 -fsanitize=undefined ask_the_model.cpp ../utilities/call_the_model.cpp -o amfq.out -g
-#include <iostream>
+// Copile with g++ -std=c++17 -fsanitize=undefined ask_the_model.cpp ../utilities/call_the_model.cpp -o amfq.out -g
 #include <string>
 #include <vector>
 #include <cstring>
+#include <iostream>
 #include "../utilities/call_the_model.hpp"  // Include your existing model call functions
 
 // Function to display help information
@@ -42,29 +42,29 @@ int main(int argc, char* argv[]) {
     std::string comand_dir = get_commands_directory();
     
     std::string historial_json = comand_dir+"/historial_test.json";  
-    std::string opciones_json = comand_dir+"/opcions.json";  
+    std::string options_json = comand_dir+"/options.json";  
 
-    ollama::options opciones;
-    inicializar_opciones(opciones_json, opciones);
+    ollama::options options;
+    initialize_options(options_json, options);
 
-    ollama::messages historial;
-    inicializar_historial(historial_json, historial);
+    ollama::messages history;
+    initialize_history(historial_json, history);
 
-    std::string modelo = opciones["model_fast_response"];
-    std::string initial_instruction = opciones["initial_intrucion"];
+    std::string model = options["model_fast_response"];
+    std::string initial_instruction = options["initial_instruction"];
 
     // Adjust for detailed response if flag is set
     if (detailed_response) {
-        initial_instruction = opciones["detail_initial_intrucion"];
-        modelo = opciones["model_chat_response"];
+        initial_instruction = options["detail_initial_instruction"];
+        model = options["model_chat_response"];
     }
 
     // Verify if Ollama server is running
-    verificar_ollama(modelo);
+    verify_ollama(model);
 
     // Process the prompt and generate a response
-    obtener_respuesta(historial, modelo, opciones, initial_instruction, prompt, "user");
-    print_formatted_output(historial.back()["content"]);
+    get_response(history, model, options, initial_instruction, prompt, "user");
+    print_formatted_output(history.back()["content"]);
 
     return 0;
 }
