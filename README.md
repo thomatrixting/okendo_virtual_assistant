@@ -16,7 +16,7 @@ OVA aims to provide an interactive assistant experience, capable of interpreting
 ```bash
 ova amfq --voice --speak
 ```
-> follow the instruccions speak and ask somthing like how to create a file on linux and wait for the response to apear an be read
+> follow the instructions speak and ask something like how to create a file on linux and wait for the response to appear an be read
 
 **Example Output:**
 ```
@@ -102,14 +102,14 @@ Now you're ready to use OVA!
 
 ## Dependencies
 
-This project uses the folowing dependeces and they are installed automatically by the set up process:
+This project uses the following dependencies and they are installed automatically by the setup process:
 - **[Espeak](https://github.com/espeak-ng/espeak-ng) v1.52.0 (latest)** (speech synthesis)
 - **[Alsa-utils](https://web.git.kernel.org/)** (audio utilities from the Linux kernel)
-- **[Ollama v0.5.13-rc5](https://ollama.com/download/ollama-linux-amd64-rocm.tgz) (latest)** (for handeling llm models on your pc)
-- **[deepseek-coder1.3b](https://huggingface.co/deepseek-ai/deepseek-coder-1.3b-instruct) (from deepseek)** (the llm that powers the whole proyect)
+- **[Ollama v0.5.13-rc5](https://ollama.com/download/ollama-linux-amd64-rocm.tgz) (latest)** (for handling llm models on your pc)
+- **[deepseek-coder1.3b](https://huggingface.co/deepseek-ai/deepseek-coder-1.3b-instruct) (from deepseek)** (the llm that powers the whole project)
 - **[ollama-hpp](https://github.com/jmont-dev/ollama-hpp) v0.9.4(latest) (from jmont-dev)** (to handle ollama from c++)
 - **[whisper.cpp v1.7.4](https://github.com/ggerganov/whisper.cpphttps://github.com/ggerganov/whisper.cpp)(latest)** (to interpret voice into text)
-- **[ggml-base.bin](https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-base.bin)** (the especific model of whisper cpp that makes the transcription)
+- **[ggml-base.bin](https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-base.bin)** (the specific model of whisper cpp that makes the transcription)
 
 ## Usage and Examples
 
@@ -124,7 +124,7 @@ For example:
 ```bash
 ova amfq
 ```
-that will generate the evitoment were you can add the prompt:
+that will generate the environment where you can add the prompt:
 ```bash
 Entering AMFQ Mode. Say or type 'exit' to quit.
 You: [your prompt here]
@@ -150,21 +150,21 @@ To install Python libraries using pip (Python package installer), you can follow
 
 The `ova` command supports additional options:
 
-- `--detail`: use a less restrictive setup of `deepseek-coder` so it will take more time but generate beter responses in return.
+- `--detail`: use a less restrictive setup of `deepseek-coder` so it will take more time but generate better responses in return.
 - `--speak`: it will use espeak to convert the response into audio and play it.
-- `--voice`: it will promot a terminal expecting the ussers to press `r` to record and `s` to stop the recording, which afterward it will convert the audio into a promt that will be answer by the model.
+- `--voice`: it will prompt a terminal expecting the users to press `r` to record and `s` to stop the recording, which afterward it will convert the audio into a prompt that will be answered by the model.
  
 
 #### Example Commands:
 
 - **modes**
-  with the mode `amfq` and `chat` it will behave as explain in more depth in the next seccion.
+  with the mode `amfq` and `chat` it will behave as explained in more depth in the next seccion.
 
 - **Basic Response:**
   ```bash
   ova amfq 
   ```
-  this will generate a interface were the promt can be put
+  this will generate a interface were the prompt can be put
 
   ```bash
   Entering AMFQ Mode. Say or type 'exit' to quit.
@@ -182,7 +182,7 @@ The `ova` command supports additional options:
   ```
 
 - **Detail response:**
-  is the same that with the basic just that it will take a litle longer but it will generate better responses
+  is the same that with the basic just that it will take a little longer but it will generate better responses
 
   just with
   ```bash
@@ -191,7 +191,7 @@ The `ova` command supports additional options:
   ```  
 
 - **Speak mode**
-  it will beahave the same but the response will be read
+  it will behave the same but the response will be read
 
   just with
   ```bash
@@ -213,7 +213,7 @@ The `ova` command supports additional options:
   Entering AMFQ Mode. Say or type 'exit' to quit.
   You: 🎤 Press 'R' to talk.
   ```
-  and you just need to follow instruccions
+  and you just need to follow instructions
 
   for example
   **Output:**
@@ -232,7 +232,7 @@ The `ova` command supports additional options:
   `bash
   $ touch /path/to/your_directory/file1
   `
-  This will generate a new empty file at the specified location with name file1. If you want to create it in specific directory, replace "/path" and "Your Directory Name". For example:  
+  This will generate a new empty file at the specified location with name file1. If you want to create it in a specific directory, replace "/path" and "Your Directory Name". For example:  
   To Create Files (File 2):
   `bash
   $ touch /home/user_name/Documents/myDirectory/file2
@@ -287,7 +287,7 @@ The `amfq` command supports additional options:
 
 - `-d`: Requests a detailed response from the assistant.
 - `--help`: Displays usage information.
-- `--detail`: use a less restrictive setup of `deepseek-coder` so it will take more time but generate beter responses in return
+- `--detail`: use a less restrictive setup of `deepseek-coder` so it will take more time but generate better responses in return
 
 #### Example Commands:
 
@@ -299,7 +299,7 @@ The `amfq` command supports additional options:
   ```
   ================ Asistant out ================
 
-  grep` is a command-line utility used primarily on Unix/Linux systems (like Linux) that searches through text or file content based upon user specified criteria, often called "patterns". It's also commonly referred as `find tool of the same name in other contexts. 
+  grep` is a command-line utility used primarily on Unix/Linux systems (like Linux) that searches through text or file content based upon user specified criteria, often called "patterns". It's also commonly referred to as `find tool of the same name in other contexts. 
 
   Here are some basic usage examples:
 
@@ -354,9 +354,9 @@ chat
   `bash
   $ mkdir dirname   # Replace 'dirname' with whatever name of your new Directory.
   `
-  3) Creating a File and Writing to It: You can use echo or cat commands for writing data into the file, if you want create an empty textfile just type : 
+  3) Creating a File and Writing to It: You can use echo or cat commands for writing data into the file, if you want create an empty text file just type : 
   `bash
-  $ nano filename   # Replace 'filename' by what ever name of your new Text/File. This will open up Nano editor in terminal where u could write and save it thereafter using ctrl+x to exit the file, then press y for yes when prompted about saving changes into a non-existent or unnamed filename
+  $ nano filename   # Replace 'filename' by whatever name of your new Text/File. This will open up Nano editor in terminal where u could write and save it thereafter using ctrl+x to exit the file, then press y for yes when prompted about saving changes into a non-existent or unnamed filename
   ` 
   4) Creating File with Specific Content: You can use echo command :  
   `bash
@@ -404,3 +404,5 @@ chat -d
 ```
 
 To exit the chat session, type `/bye`.
+
+
